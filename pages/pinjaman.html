@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pengajuan Pinjaman - SimpanPinjam Pro</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <h1>SimpanPinjam Pro</h1>
+            <ul class="nav-links">
+                <li><a href="../index.html">Dashboard</a></li>
+                <li><a href="nasabah.html">Nasabah</a></li>
+                <li><a href="pinjaman.html">Pinjaman</a></li>
+                <li><a href="pembayaran.html">Pembayaran</a></li>
+                <li><a href="laporan.html">Laporan</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2>Pengajuan Pinjaman Baru</h2>
+        
+        <div class="form-container">
+            <form>
+                <div class="form-group">
+                    <label for="nasabah">Nasabah</label>
+                    <select id="nasabah" class="form-control">
+                        <option value="">Pilih Nasabah</option>
+                        <option value="1">John Doe</option>
+                        <option value="2">Jane Smith</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="jumlah">Jumlah Pinjaman</label>
+                    <input type="number" id="jumlah" class="form-control" placeholder="Masukkan jumlah pinjaman">
+                </div>
+
+                <div class="form-group">
+                    <label for="tenor">Tenor (Bulan)</label>
+                    <select id="tenor" class="form-control">
+                        <option value="6">6 Bulan</option>
+                        <option value="12">12 Bulan</option>
+                        <option value="24">24 Bulan</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="bunga">Bunga (%/tahun)</label>
+                    <input type="number" id="bunga" class="form-control" value="12" step="0.1">
+                </div>
+
+                <div class="form-group">
+                    <label for="jaminan">Jaminan</label>
+                    <input type="text" id="jaminan" class="form-control" placeholder="Masukkan jenis jaminan">
+                </div>
+
+                <div class="form-group">
+                    <label for="tujuan">Tujuan Pinjaman</label>
+                    <textarea id="tujuan" class="form-control" rows="3"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Ajukan Pinjaman</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

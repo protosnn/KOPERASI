@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manajemen Nasabah - SimpanPinjam Pro</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <h1>SimpanPinjam Pro</h1>
+            <ul class="nav-links">
+                <li><a href="../index.html">Dashboard</a></li>
+                <li><a href="nasabah.html">Nasabah</a></li>
+                <li><a href="pinjaman.html">Pinjaman</a></li>
+                <li><a href="pembayaran.html">Pembayaran</a></li>
+                <li><a href="laporan.html">Laporan</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2>Manajemen Nasabah</h2>
+            <button class="btn btn-primary" onclick="document.getElementById('formNasabahBaru').style.display='block'">
+                + Nasabah Baru
+            </button>
+        </div>
+
+        <!-- Form Nasabah Baru -->
+        <div id="formNasabahBaru" class="form-container" style="display: none;">
+            <h3>Pendaftaran Nasabah Baru</h3>
+            <form>
+                <div class="form-group">
+                    <label for="nama">Nama Lengkap</label>
+                    <input type="text" id="nama" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="nik">NIK</label>
+                    <input type="text" id="nik" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="tempat_lahir">Tempat Lahir</label>
+                    <input type="text" id="tempat_lahir" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="tanggal_lahir">Tanggal Lahir</label>
+                    <input type="date" id="tanggal_lahir" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="alamat">Alamat</label>
+                    <textarea id="alamat" class="form-control" rows="3" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="telepon">No. Telepon</label>
+                    <input type="tel" id="telepon" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="pekerjaan">Pekerjaan</label>
+                    <input type="text" id="pekerjaan" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="penghasilan">Penghasilan per Bulan</label>
+                    <input type="number" id="penghasilan" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="dokumen">Upload Dokumen</label>
+                    <input type="file" id="dokumen" class="form-control" multiple>
+                    <small>KTP, Slip Gaji, dll.</small>
+                </div>
+
+                <button type="submit" class="btn btn-success">Simpan Data</button>
+                <button type="button" class="btn btn-danger" onclick="document.getElementById('formNasabahBaru').style.display='none'">
+                    Batal
+                </button>
+            </form>
+        </div>
+
+        <!-- Tabel Daftar Nasabah -->
+        <div class="card" style="margin-top: 20px;">
+            <div class="card-header">Daftar Nasabah</div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nama</th>
+                        <th>NIK</th>
+                        <th>Telepon</th>
+                        <th>Status</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>N001</td>
+                        <td>John Doe</td>
+                        <td>3271046709890001</td>
+                        <td>08123456789</td>
+                        <td><span class="badge badge-success">Aktif</span></td>
+                        <td>
+                            <button class="btn btn-warning">Edit</button>
+                            <button class="btn btn-primary">Detail</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>N002</td>
+                        <td>Jane Smith</td>
+                        <td>3271046709890002</td>
+                        <td>08198765432</td>
+                        <td><span class="badge badge-warning">Pending</span></td>
+                        <td>
+                            <button class="btn btn-warning">Edit</button>
+                            <button class="btn btn-primary">Detail</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

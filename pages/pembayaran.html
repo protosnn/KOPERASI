@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manajemen Pembayaran - SimpanPinjam Pro</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <h1>SimpanPinjam Pro</h1>
+            <ul class="nav-links">
+                <li><a href="../index.html">Dashboard</a></li>
+                <li><a href="nasabah.html">Nasabah</a></li>
+                <li><a href="pinjaman.html">Pinjaman</a></li>
+                <li><a href="pembayaran.html">Pembayaran</a></li>
+                <li><a href="laporan.html">Laporan</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2>Manajemen Pembayaran</h2>
+
+        <!-- Form Pencarian Pinjaman -->
+        <div class="form-container">
+            <h3>Cari Pinjaman</h3>
+            <div class="form-group">
+                <label for="search">No. Pinjaman / Nama Nasabah</label>
+                <input type="text" id="search" class="form-control" placeholder="Masukkan No. Pinjaman atau Nama Nasabah">
+            </div>
+            <button class="btn btn-primary">Cari</button>
+        </div>
+
+        <!-- Form Pembayaran -->
+        <div class="form-container">
+            <h3>Input Pembayaran</h3>
+            <form>
+                <div class="form-group">
+                    <label for="no_pinjaman">No. Pinjaman</label>
+                    <input type="text" id="no_pinjaman" class="form-control" readonly value="P001">
+                </div>
+
+                <div class="form-group">
+                    <label for="nama_nasabah">Nama Nasabah</label>
+                    <input type="text" id="nama_nasabah" class="form-control" readonly value="John Doe">
+                </div>
+
+                <div class="form-group">
+                    <label for="angsuran_ke">Angsuran Ke-</label>
+                    <input type="number" id="angsuran_ke" class="form-control" readonly value="3">
+                </div>
+
+                <div class="form-group">
+                    <label for="jumlah_angsuran">Jumlah Angsuran</label>
+                    <input type="number" id="jumlah_angsuran" class="form-control" readonly value="1000000">
+                </div>
+
+                <div class="form-group">
+                    <label for="denda">Denda Keterlambatan</label>
+                    <input type="number" id="denda" class="form-control" readonly value="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="total_bayar">Total Pembayaran</label>
+                    <input type="number" id="total_bayar" class="form-control" readonly value="1000000">
+                </div>
+
+                <div class="form-group">
+                    <label for="metode_pembayaran">Metode Pembayaran</label>
+                    <select id="metode_pembayaran" class="form-control">
+                        <option value="cash">Cash</option>
+                        <option value="transfer">Transfer Bank</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="bukti_pembayaran">Bukti Pembayaran</label>
+                    <input type="file" id="bukti_pembayaran" class="form-control">
+                </div>
+
+                <button type="submit" class="btn btn-success">Proses Pembayaran</button>
+            </form>
+        </div>
+
+        <!-- Riwayat Pembayaran -->
+        <div class="card" style="margin-top: 20px;">
+            <div class="card-header">Riwayat Pembayaran</div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Tanggal</th>
+                        <th>No. Pinjaman</th>
+                        <th>Nasabah</th>
+                        <th>Angsuran Ke-</th>
+                        <th>Jumlah</th>
+                        <th>Status</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2025-09-08</td>
+                        <td>P001</td>
+                        <td>John Doe</td>
+                        <td>3</td>
+                        <td>Rp 1.000.000</td>
+                        <td><span class="badge badge-success">Lunas</span></td>
+                        <td>
+                            <button class="btn btn-primary">Cetak Kuitansi</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
