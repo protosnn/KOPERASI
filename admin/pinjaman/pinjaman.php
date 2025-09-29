@@ -92,7 +92,7 @@
             <div class="col-md-12 grid-margin">
               <div class="row">
                 <div class="col-12 col-xl-8 mb-2 mb-xl-0">
-                  <h1 class="font-weight-bold">Halaman Peminjaman</h1>
+                  <h1 class="font-weight-bold">Halaman Data Peminjaman</h1>
                 </div>
               </div>
             </div>
@@ -133,7 +133,6 @@
                           <th>Nama Peminjam</th>
                           <th>Jumlah Pinjaman</th>
                           <th>Tenor</th>
-                          <th>Angsuran/bulan</th>
                           <th>Tanggal Pinjam</th>
                           <th>Jatuh Tempo</th>
                           <th>Status</th>
@@ -148,7 +147,6 @@
                                   p.jumlah_pinjaman,
                                   p.tenor,
                                   p.status,
-                                  p.angsuran_per_bulan,
                                   p.tanggal_pinjam,
                                   DATE_ADD(p.tanggal_pinjam, INTERVAL p.tenor MONTH) AS tanggal_jatuh_tempo,
                                   CASE
@@ -197,9 +195,7 @@
                             Rp <?php echo number_format($row['jumlah_pinjaman'], 0, ',', '.'); ?>
                           </td>
                           <td><?php echo $row['tenor']; ?> bulan</td>
-                          <td data-sort="<?php echo $row['angsuran_per_bulan']; ?>">
-                            Rp <?php echo number_format($row['angsuran_per_bulan'], 0, ',', '.'); ?>
-                          </td>
+                          
                           <td data-sort="<?php echo strtotime($row['tanggal_pinjam']); ?>">
                             <?php echo date('d/m/Y', strtotime($row['tanggal_pinjam'])); ?>
                           </td>

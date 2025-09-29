@@ -14,7 +14,24 @@
   <!-- Plugin css for this page -->
   <link rel="stylesheet" href="../template2/vendors/datatables.net-bs4/dataTables.bootstrap4.css">
   <link rel="stylesheet" href="../template2/vendors/ti-icons/css/themify-icons.css">
-  <link rel="stylesheet" type="../template2/text/css" href="../template2/js/select.dataTables.min.css">
+  <link rel="stylesheet" type="text/css" href="../template2/js/select.dataTables.min.css">
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.2.3/css/buttons.bootstrap4.min.css">
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap4.min.css">
+  <style>
+    .badge {
+      padding: 6px 10px;
+      font-size: 12px;
+    }
+    .badge-success {
+      background-color: #00d25b;
+    }
+    .badge-warning {
+      background-color: #ffab00;
+    }
+    .btn i {
+      font-size: 12px;
+    }
+  </style>
   <!-- End plugin css for this page -->
   <!-- inject:css -->
   <link rel="stylesheet" href="../template2/css/vertical-layout-light/style.css">
@@ -91,66 +108,76 @@
             <div class="col-md-12 grid-margin">
               <div class="row">
                 <div class="col-12 col-xl-8 mb-2 mb-xl-0">
-                  <h1 class="font-weight-bold">Halaman Peminjaman</h1>
+                  <h1 class="font-weight-bold">Halaman Data Angsuran</h1>
                 </div>
               </div>
             </div>
           </div>
-            <div class="stretch-card grid-margin grid-margin-md-0 mb-5">
-                  <div class="card data-icon-card-primary">
-                    <div class="card-body">
-                      <p class="card-title text-white">Total Peminjaman Aktif</p>                      
-                      <div class="row">
-                        <div class="col-8 text-white">
-                          <h3>00000</h3>
-                          <p class="text-white font-weight-500 mb-0">Lorem ipsum, dolor sit amet consectetur adipisicing elit. Eligendi quibusdam magni vitae doloremque ad modi amet, perferendis eius totam est odit tempore nihil, quasi reprehenderit. Sint cupiditate a et autem.</p>
-                        </div>
-                        <div class="col-4 background-icon">
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-          <div class="">
-            <div class=" grid-margin stretch-card">
+
+          <div class="row">
+            <div class="col-md-12 grid-margin stretch-card">
               <div class="card">
                 <div class="card-body">
-                  <p class="card-title mb-2">Tabel peminjaman</p>
+                  <h4 class="card-title">Data Angsuran</h4>
                   <div class="table-responsive">
-                    <table class="table table-striped table-borderless">
+                    <table id="tableAngsuran" class="table table-striped">
                       <thead>
                         <tr>
-                          <th>Product</th>
-                          <th>Price</th>
-                          <th>Date</th>
+                          <th>No</th>
+                          <th>ID Pinjaman</th>
+                          <th>Nominal</th>
+                          <th>Tanggal Jatuh Tempo</th>
+                          <th>Tanggal Pelunasan</th>
                           <th>Status</th>
-                        </tr>  
+                          <th>Bukti</th>
+                          <th>Aksi</th>
+                        </tr>
                       </thead>
                       <tbody>
+                        <?php
+                        include '../koneksi.php';
+                        $no = 1;
+                        $query = mysqli_query($koneksi, "SELECT a.*, p.anggota_id 
+                                                        FROM angsuran a
+                                                        LEFT JOIN pinjaman p ON a.pinjaman_id = p.id 
+                                                        ORDER BY a.tgl_jatuhtempo DESC");
+                        while($row = mysqli_fetch_array($query)){
+                        ?>
                         <tr>
-                          <td>Search Engine Marketing</td>
-                          <td class="font-weight-bold">$362</td>
-                          <td>21 Sep 2018</td>
-                          <td class="font-weight-medium"><div class="badge badge-success">Completed</div></td>
+                          <td><?php echo $no++; ?></td>
+                          <td><?php echo $row['pinjaman_id']; ?></td>
+                          <td>Rp <?php echo number_format($row['nominal'],0,',','.'); ?></td>
+                          <td><?php echo date('d/m/Y', strtotime($row['tgl_jatuhtempo'])); ?></td>
+                          <td><?php echo $row['tgl_pelunasan'] ? date('d/m/Y', strtotime($row['tgl_pelunasan'])) : '-'; ?></td>
+                          <td>
+                            <?php if($row['status'] == 'lunas'){ ?>
+                              <span class="badge badge-success">Lunas</span>
+                            <?php } else { ?>
+                              <span class="badge badge-warning">Belum Lunas</span>
+                            <?php } ?>
+                          </td>
+                          <td>
+                            <?php if($row['bukti']){ ?>
+                              <button type="button" class="btn btn-sm btn-info" onclick="window.open('../uploads/bukti_pembayaran/<?php echo $row['bukti']; ?>', '_blank')">
+                                <i class="ti-file"></i>
+                              </button>
+                            <?php } else { ?>
+                              -
+                            <?php } ?>
+                          </td>
+                          <td>
+                            <button type="button" class="btn btn-sm btn-info" onclick="window.location.href='detail_angsuran.php?id=<?php echo $row['id']; ?>'">
+                              <i class="ti-eye"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-warning" onclick="window.location.href='edit_angsuran.php?id=<?php echo $row['id']; ?>'">
+                              <i class="ti-pencil"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-danger" onclick="if(confirm('Apakah anda yakin ingin menghapus data ini?')){window.location.href='../proses/proses_angsuran.php?action=delete&id=<?php echo $row['id']; ?>'}">
+                              <i class="ti-trash"></i>
+                            </button>
+                          </td>
                         </tr>
-                        <tr>
-                          <td>Search Engine Optimization</td>
-                          <td class="font-weight-bold">$116</td>
-                          <td>13 Jun 2018</td>
-                          <td class="font-weight-medium"><div class="badge badge-success">Completed</div></td>
-                        </tr>
-                        <tr>
-                          <td>Display Advertising</td>
-                          <td class="font-weight-bold">$551</td>
-                          <td>28 Sep 2018</td>
-                          <td class="font-weight-medium"><div class="badge badge-warning">Pending</div></td>
-                        </tr>
-                        <tr>
-                          <td>Pay Per Click Advertising</td>
-                          <td class="font-weight-bold">$523</td>
-                          <td>30 Jun 2018</td>
-                          <td class="font-weight-medium"><div class="badge badge-warning">Pending</div></td>
-                        </tr>
+                        <?php } ?>
                       </tbody>
                     </table>
                   </div>
@@ -158,6 +185,61 @@
               </div>
             </div>
           </div>
+
+            <h2 class="font-weight-bold mb-5">Verifikasi Angsuran</h2>
+            <div class=" grid-margin stretch-card">
+              <div class="card">
+                <div class="card-body">
+                  <h4 class="card-title">Form Vrifikasi Angsuran</h4>
+                  <p class="card-description">
+                    Form Verifikasi Angsuran
+                  </p>
+                  <form class="forms-sample">
+                    <div class="form-group">
+                      <div class="form-group">
+                        <label for="anggota_id">Nama Peminjam</label>
+                        <select class="form-control" name="anggota_id">
+                          <option>Pemi</option>
+                          <option>Aziz</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label for="Tanggal">Tanggal Peminjaman</label>
+                      <input type="date" class="form-control" name="tanggal_pinjam">
+                    </div>
+                    <div class="form-group">
+                      <div class="form-group">
+                        <label for="status">Status Peminjam</label>
+                        <select class="form-control" name="status">
+                          <option>Aktif</option>
+                          <option>Lunas</option>
+                          <option>Terlambat</option>
+                          <option>Macet</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label for="jumlah_pinjaman">Nominal Peminjaman</label>
+                      <input type="number" class="form-control" name="jumlah_pinjaman" placeholder="Masukkan Nominal Peminjaman">
+                    </div>
+                    <div class="form-group">
+                      <div class="form-group">
+                        <label for="tenor">Tenor</label>
+                        <select class="form-control" name="tenor">
+                          <option>10 Bulan</option>
+                          <option>12 Bulan</option>
+                          <option>20 Bulan</option>
+                          <option>24 Bulan</option>
+                        </select>
+                      </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mr-2">Submit</button>
+                    <button class="btn btn-light">Cancel</button>
+                  </form>
+                </div>
+              </div>
+            </div>
         <!-- content-wrapper ends -->
         <!-- partial:partials/_footer.html -->
         <footer class="footer">
@@ -186,6 +268,60 @@
   <script src="../template2/vendors/datatables.net-bs4/dataTables.bootstrap4.js"></script>
   <script src="../template2/js/dataTables.select.min.js"></script>
 
+  <script src="https://cdn.datatables.net/buttons/2.2.3/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.2.3/js/buttons.bootstrap4.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.2.3/js/buttons.html5.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.2.3/js/buttons.print.min.js"></script>
+  <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
+  <script src="https://cdn.datatables.net/responsive/2.2.9/js/responsive.bootstrap4.min.js"></script>
+
+  <script>
+    $(document).ready(function() {
+      $('#tableAngsuran').DataTable({
+        responsive: true,
+        dom: 'Bfrtip',
+        buttons: [
+          {
+            extend: 'copy',
+            className: 'btn btn-sm btn-primary'
+          },
+          {
+            extend: 'csv',
+            className: 'btn btn-sm btn-primary'
+          },
+          {
+            extend: 'excel',
+            className: 'btn btn-sm btn-primary'
+          },
+          {
+            extend: 'pdf',
+            className: 'btn btn-sm btn-primary'
+          },
+          {
+            extend: 'print',
+            className: 'btn btn-sm btn-primary'
+          }
+        ],
+        language: {
+          search: "Cari:",
+          lengthMenu: "Tampilkan _MENU_ data per halaman",
+          zeroRecords: "Tidak ada data yang ditemukan",
+          info: "Menampilkan halaman _PAGE_ dari _PAGES_",
+          infoEmpty: "Tidak ada data yang tersedia",
+          infoFiltered: "(difilter dari _MAX_ total data)",
+          paginate: {
+            first: "Pertama",
+            last: "Terakhir",
+            next: "Selanjutnya",
+            previous: "Sebelumnya"
+          }
+        }
+      });
+    });
+  </script>
   <!-- End plugin js for this page -->
   <!-- inject:js -->
   <script src="../template2/js/off-canvas.js"></script>

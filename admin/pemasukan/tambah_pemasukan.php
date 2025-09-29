@@ -92,30 +92,7 @@
             <div class="col-md-12 grid-margin">
               <div class="row">
                 <div class="col-12 col-xl-8 mb-2 mb-xl-0">
-                  <h1 class="font-weight-bold">Halaman Peminjaman</h1>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="stretch-card grid-margin grid-margin-md-0 mb-5">
-            <div class="card data-icon-card-primary">
-              <div class="card-body">
-                <?php
-                require_once '../../koneksi.php';
-                $query_total = "SELECT COUNT(*) as total, SUM(jumlah_pinjaman) as total_pinjaman FROM pinjaman WHERE status='aktif'";
-                $result_total = mysqli_query($koneksi, $query_total);
-                $data_total = mysqli_fetch_assoc($result_total);
-                ?>
-                <p class="card-title text-white">Total Peminjaman Aktif</p>                      
-                <div class="row">
-                  <div class="col-8 text-white">
-                    <h3><?php echo $data_total['total']; ?> Pinjaman</h3>
-                    <p class="text-white font-weight-500 mb-0">
-                      Total Nilai Pinjaman: Rp <?php echo number_format($data_total['total_pinjaman'], 0, ',', '.'); ?>
-                    </p>
-                  </div>
-                  <div class="col-4 background-icon">
-                  </div>
+                  <h1 class="font-weight-bold">Halaman Tambah Data Pemasukan</h1>
                 </div>
               </div>
             </div>
@@ -123,14 +100,14 @@
             <div class=" grid-margin stretch-card">
               <div class="card">
                 <div class="card-body">
-                  <h4 class="card-title">Form Tambah Data Pinjaman</h4>
+                  <h4 class="card-title">Form Tambah Data Pemasukan</h4>
                   <p class="card-description">
-                    Form Tambah Data Pinjaman
+                    Form Tambah Data Pemasukan
                   </p>
-                  <form class="forms-sample" action="../../proses/proses_tambah_pinjaman.php" method="POST">
+                  <form class="forms-sample" action="proses_tambah_pemasukan.php" method="POST">
                     <div class="form-group">
                       <div class="form-group">
-                        <label for="anggota_id">Nama Peminjam</label>
+                        <label for="anggota_id">Nama Anggota</label>
                         <select class="form-control" name="anggota_id">
                           <option>Pemi</option>
                           <option>Aziz</option>
@@ -138,34 +115,18 @@
                       </div>
                     </div>
                     <div class="form-group">
-                      <label for="Tanggal">Tanggal Peminjaman</label>
-                      <input type="date" class="form-control" name="tanggal_pinjam">
-                    </div>
-                    <div class="form-group">
                       <div class="form-group">
-                        <label for="status">Status Peminjam</label>
-                        <select class="form-control" name="status">
-                          <option>Aktif</option>
-                          <option>Lunas</option>
-                          <option>Terlambat</option>
-                          <option>Macet</option>
+                        <label for="status">Jenis Pemasukan</label>
+                        <select class="form-control" name="jenissimpanan_id">
+                          <option>Simpanan Pokok</option>
+                          <option>Simpanan Wajib</option>
+                          <option>Simpanan Sukarela</option>
                         </select>
                       </div>
                     </div>
                     <div class="form-group">
-                      <label for="jumlah_pinjaman">Nominal Peminjaman</label>
-                      <input type="number" class="form-control" name="jumlah_pinjaman" placeholder="Masukkan Nominal Peminjaman">
-                    </div>
-                    <div class="form-group">
-                      <div class="form-group">
-                        <label for="tenor">Tenor</label>
-                        <select class="form-control" name="tenor">
-                          <option>10 Bulan</option>
-                          <option>12 Bulan</option>
-                          <option>20 Bulan</option>
-                          <option>24 Bulan</option>
-                        </select>
-                      </div>
+                      <label for="nominal">Nominal</label>
+                      <input type="number" class="form-control" name="nominal" placeholder="Masukkan Nominal">
                     </div>
                     <button type="submit" class="btn btn-primary mr-2">Submit</button>
                     <button class="btn btn-light">Cancel</button>

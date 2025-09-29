@@ -1,7 +1,7 @@
  <nav class="sidebar sidebar-offcanvas" id="sidebar">
         <ul class="nav">
           <li class="nav-item">
-            <a class="nav-link" href="../dashboard.php">
+            <a class="nav-link" href="http://localhost/koperasi/admin/dashboard.php">
               <i class="icon-grid menu-icon"></i>
               <span class="menu-title">Dashboard</span>
             </a>
@@ -20,7 +20,7 @@
             </div>
           </li>
           <li class="nav-item">
-            <a class="nav-link"  href="angsuran.php" aria-controls="form-elements">
+            <a class="nav-link"  href="http://localhost/koperasi/admin/angsuran.php" aria-controls="form-elements">
               <i class="icon-columns menu-icon"></i>
               <span class="menu-title">Angsuran</span>
             </a>
@@ -33,9 +33,7 @@
             </a>
             <div class="collapse" id="charts">
               <ul class="nav flex-column sub-menu">
-                <li class="nav-item"> <a class="nav-link" href="../template2/pages/charts/chartjs.html">Simpanan Pokok</a></li>
-                <li class="nav-item"> <a class="nav-link" href="../template2/pages/charts/chartjs.html">Simpanan Wajib</a></li>
-                <li class="nav-item"> <a class="nav-link" href="../template2/pages/charts/chartjs.html">Simpanan Sukarela </a></li>
+                <li class="nav-item"> <a class="nav-link" href="http://localhost/koperasi/admin/pemasukan/pemasukan.php">Pemasukan</a></li>
               </ul>
             </div>
           </li>
