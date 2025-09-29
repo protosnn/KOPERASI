@@ -102,16 +102,16 @@
               <div class="card-body">
                 <?php
                 require_once '../../koneksi.php';
-                $query_total = "SELECT COUNT(*) as total, SUM(jumlah_pinjaman) as total_pinjaman FROM pinjaman WHERE status='aktif'";
+                $query_total = "SELECT COUNT(*) as total, SUM(nominal) as total_saldo FROM simpanan";
                 $result_total = mysqli_query($koneksi, $query_total);
                 $data_total = mysqli_fetch_assoc($result_total);
                 ?>
-                <p class="card-title text-white">Total Peminjaman Aktif</p>                      
+                <p class="card-title text-white">Total Saldo</p>                      
                 <div class="row">
                   <div class="col-8 text-white">
-                    <h3><?php echo $data_total['total']; ?> Pinjaman</h3>
+                    <h3><?php echo $data_total['total']; ?> Saldo</h3>
                     <p class="text-white font-weight-500 mb-0">
-                      Total Nilai Pinjaman: Rp <?php echo number_format($data_total['total_pinjaman'], 0, ',', '.'); ?>
+                      Total Nilai Saldo: Rp <?php echo number_format($data_total['total_saldo'], 0, ',', '.'); ?>
                     </p>
                   </div>
                   <div class="col-4 background-icon">
@@ -125,9 +125,9 @@
               <div class="card">
                 <div class="card-body">
                   <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4 class="card-title mb-0">Daftar Peminjaman</h4>
+                    <h4 class="card-title mb-0">Daftar Data Pemasukan</h4>
                     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalTambahPinjaman">
-                      <i class="ti-plus menu-icon"></i> Tambah Pinjaman
+                      <i class="ti-plus menu-icon"></i> Tambah Pemasukan
                     </button>
                   </div>
                   <!-- Modal Tambah Pinjaman -->
@@ -135,15 +135,15 @@
                     <div class="modal-dialog modal-lg" role="document">
                       <div class="modal-content">
                         <div class="modal-header">
-                          <h5 class="modal-title" id="modalTambahPinjamanLabel">Tambah Data Pinjaman</h5>
+                          <h5 class="modal-title" id="modalTambahPinjamanLabel">Tambah Data Pemasukan</h5>
                           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                           </button>
                         </div>
-                        <form id="formTambahPinjaman" action="../../proses/proses_tambah_pinjaman.php" method="POST">
+                        <form id="formTambahPinjaman" action="../../proses/proses_tambah_pemasukan.php" method="POST">
                           <div class="modal-body">
                             <div class="form-group">
-                              <label for="anggota_id">Nama Peminjam</label>
+                              <label for="anggota_id">Nama Anggota</label>
                               <select class="form-control" name="anggota_id" required>
                                 <option value="">Pilih Anggota</option>
                                 <?php
@@ -155,37 +155,35 @@
                               </select>
                             </div>
                             <div class="form-group">
-                              <label for="jumlah_pinjaman">Jumlah Pinjaman</label>
+                              <label for="jumlah_pinjaman">Nominal</label>
                               <div class="input-group">
                                 <div class="input-group-prepend">
                                   <span class="input-group-text">Rp</span>
                                 </div>
-                                <input type="text" class="form-control currency" name="jumlah_pinjaman" placeholder="Masukkan jumlah pinjaman" required>
+                                <input type="text" class="form-control currency" name="jumlah_pinjaman" placeholder="Masukkan Nominal Untuk Simpanan Sukarela" required>
                               </div>
                             </div>
                             <div class="row">
                               <div class="col-md-6">
                                 <div class="form-group">
-                                  <label for="tenor">Tenor (Bulan)</label>
-                                  <select class="form-control" name="tenor" required>
-                                    <option value="">Pilih Tenor</option>
-                                    <option value="10">10 Bulan</option>
-                                    <option value="12">12 Bulan</option>
-                                    <option value="18">18 Bulan</option>
-                                    <option value="24">24 Bulan</option>
+                                  <label for="jenissimpanan">Jenis simpanan</label>
+                                  <select class="form-control" name="jenissimpanan" required>
+                                    <option value="">Pilih Jenis Simpanan</option>
+                                    <?php
+                                    $query_jenis = mysqli_query($koneksi, "select id, nama from jenissimpanan order by nama asc");
+                                    while($jenis = mysqli_fetch_assoc($query_jenis)) {
+                                      echo "<option value='".$jenis['id']."'>".$jenis['nama']."</option>";
+                                    }
+                                    ?>
                                   </select>
                                 </div>
                               </div>
                               <div class="col-md-6">
                                 <div class="form-group">
-                                  <label for="tanggal_pengajuan">Tanggal Pengajuan</label>
+                                  <label for="tanggal_pengajuan">Tanggal</label>
                                   <input type="date" class="form-control" name="tanggal_pengajuan" required>
                                 </div>
                               </div>
-                            </div>
-                            <div class="form-group">
-                              <label for="keterangan">Keterangan</label>
-                              <textarea class="form-control" name="keterangan" rows="3" placeholder="Masukkan keterangan (opsional)"></textarea>
                             </div>
                           </div>
                           <div class="modal-footer">
@@ -202,116 +200,53 @@
                       <thead>
                         <tr>
                           <th>No</th>
-                          <th>Nama Peminjam</th>
-                          <th>Jumlah Pinjaman</th>
-                          <th>Tenor</th>
-                          <th>Tanggal Pengajuan</th>
-                          <th>Tanggal ACC</th>
-                          <th>Status</th>
-                          <th>Aksi</th>
+                          <th>Anggota</th>
+                          <th>Simpanan</th>
+                          <th>Nominal</th>
+                          <th>Tanggal</th>
+
                         </tr>  
                       </thead>
                       <tbody>
                         <?php
-                            $query = "SELECT
-                                  p.id AS id_pinjaman,
-                                  a.nama AS nama_anggota,
-                                  p.jumlah_pinjaman,
-                                  p.tenor,
-                                  p.status,
-                                  p.tanggal_pengajuan,
-                                  p.tanggal_acc,
-                                  DATE_ADD(p.tanggal_pengajuan, INTERVAL p.tenor MONTH) AS tanggal_jatuh_tempo,
-                                  CASE
-                                      WHEN p.status = 'acc' AND CURDATE() > DATE_ADD(p.tanggal_pengajuan, INTERVAL p.tenor MONTH) 
-                                          THEN 'pending'
-                                      ELSE p.status
-                                  END AS status_aktual
-                              FROM pinjaman p
-                              JOIN anggota a ON p.anggota_id = a.id
-                              ORDER BY p.tanggal_pengajuan DESC";
+                            $query =mysqli_query($koneksi, "SELECT
+                                simpanan.*,
+                                anggota.nama AS nama_anggota,
+                                jenissimpanan.nama AS nama_simpanan
+                            FROM simpanan
+                            LEFT JOIN anggota
+                                ON simpanan.anggota_id = anggota.id
+                            LEFT JOIN jenissimpanan
+                                ON simpanan.jenissimpanan_id = jenissimpanan.id
+                                ") ;
+                            
+                        while($result = mysqli_fetch_array($query)){
 
-                        $result = mysqli_query($koneksi, $query);
+                        
                         $no = 1;
-
-                        while($row = mysqli_fetch_assoc($result)) {
-                          $status_badge = '';
-                          switch($row['status_aktual']) {
-                            case 'acc':
-                              $status_badge = 'badge-success';
-                              break;
-                            case 'pending':
-                              $status_badge = 'badge-warning';
-                              break;
-                            default:
-                              $status_badge = 'badge-secondary';
-                          }
-
-                          // Hitung sisa hari untuk jatuh tempo
-                          $jatuh_tempo = new DateTime($row['tanggal_jatuh_tempo']);
-                          $hari_ini = new DateTime();
-                          $sisa_hari = $hari_ini->diff($jatuh_tempo)->format("%r%a");
+                        
+                          
                         ?>
                         <tr>
                           <td><?php echo $no++; ?></td>
                           <td>
-                            <div style="font-weight: bold;"><?php echo $row['nama_anggota']; ?></div>
-                            <small class="text-muted">ID: <?php echo $row['id_pinjaman']; ?></small>
-                          </td>
-                          <td data-sort="<?php echo $row['jumlah_pinjaman']; ?>">
-                            Rp <?php echo number_format($row['jumlah_pinjaman'], 0, ',', '.'); ?>
-                          </td>
-                          <td><?php echo $row['tenor']; ?> bulan</td>
-                          
-                          <td data-sort="<?php echo strtotime($row['tanggal_pengajuan']); ?>">
-                            <?php echo date('d/m/Y', strtotime($row['tanggal_pengajuan'])); ?>
-                          </td>
-                          <td data-sort="<?php echo strtotime($row['tanggal_acc']); ?>">
-                            <?php if($row['status'] == 'pending'): ?>
-                              <div class="small text-muted">
-                                Menunggu ACC
-                              </div>
-                            <?php endif; ?>
+                            <div style="font-weight: bold;"><?php echo $result['nama_anggota']; ?></div>
+                            <small class="text-muted">ID: <?php echo $result['id']; ?></small>
                           </td>
                           <td>
-                            <div class="badge <?php echo $status_badge; ?>">
-                              <?php echo ucfirst($row['status_aktual']); ?>
-                            </div>
+                            <div style="font-weight: bold;"><?php echo $result['nama_simpanan']; ?></div>
                           </td>
-                          <td>
-                            <div class="btn-group" role="group">
-                              <?php if($row['status'] == 'pending'): ?>
-                              <a href="javascript:void(0);" 
-                                 onclick="accPinjaman(<?php echo $row['id_pinjaman']; ?>)"
-                                 class="btn btn-warning btn-sm" title="ACC Pinjaman">
-                                <i class="ti-check"></i>
-                              </a>
-                              <a href="javascript:void(0);" 
-                                 onclick="tolakPinjaman(<?php echo $row['id_pinjaman']; ?>)"
-                                 class="btn btn-danger btn-sm" title="tolak Pinjaman">
-                                <i class="ti-close"></i>
-                              </a>
-                              <?php endif; ?>
-                            </div>
+                          <td data-sort="<?php echo $result['nominal']; ?>">
+                            Rp <?php echo number_format($result['nominal'], 0, ',', '.'); ?>
+                          </td>                          
+                          <td data-sort="<?php echo strtotime($result['tanggal']); ?>">
+                            <?php echo date('d/m/Y', strtotime($result['tanggal'])); ?>
                           </td>
                         </tr>
                         <?php } ?>
                       </tbody>
                     </table>
                   </div>
-                  
-                  <script>
-                    function accPinjaman(id) {
-                      if(confirm('Apakah Anda yakin ingin ACC pinjaman?')) {
-                        window.location.href = '../../proses/pinjaman_acc.php?id=' + id;
-                      }
-                    }
-                    function tolakPinjaman(id) {
-                      if(confirm('Apakah Anda yakin ingin menolak pinjaman?')) {
-                        window.location.href = 'proses_tolak_pinjam.php?id=' + id;
-                      }
-                    }
-                  </script>
                 </div>
               </div>
             </div>

@@ -15,7 +15,6 @@
             <div class="collapse" id="ui-basic">
               <ul class="nav flex-column sub-menu">
                 <li class="nav-item"> <a class="nav-link" href="http://localhost/koperasi/admin/pinjaman/pinjaman.php">Pinjaman</a></li>
-                <li class="nav-item"> <a class="nav-link" href="http://localhost/koperasi/admin/pinjaman/tambah_pinjaman.php">Tambah Pinjaman</a></li>
               </ul>
             </div>
           </li>
@@ -33,7 +32,7 @@
             </a>
             <div class="collapse" id="charts">
               <ul class="nav flex-column sub-menu">
-                <li class="nav-item"> <a class="nav-link" href="http://localhost/koperasi/admin/pemasukan/pemasukan.php">Pemasukan</a></li>
+                <li class="nav-item"> <a class="nav-link" href="http://localhost/koperasi/admin/pemasukan/simpanan.php">Pemasukan</a></li>
               </ul>
             </div>
           </li>
