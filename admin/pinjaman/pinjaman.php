@@ -271,6 +271,9 @@
                               <div class="small text-muted">
                                 Menunggu ACC
                               </div>
+
+                            <?php else: ?>
+                            <?php echo date('d/m/Y', strtotime($row['tanggal_acc'])); ?>
                             <?php endif; ?>
                           </td>
                           <td>
@@ -281,7 +284,7 @@
                           <td>
                             <div class="btn-group" role="group">
                               <?php if($row['status'] == 'pending'): ?>
-                              <a href="javascript:void(0);" 
+                              <a href="../../proses/pinjaman_acc.php?pinjaman_id=<?php echo $row['id_pinjaman']; ?>" 
                                  onclick="accPinjaman(<?php echo $row['id_pinjaman']; ?>)"
                                  class="btn btn-warning btn-sm" title="ACC Pinjaman">
                                 <i class="ti-check"></i>

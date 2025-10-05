@@ -5,7 +5,7 @@
   <!-- Required meta tags -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <title>Koperasi - Peminjaman</title>
+  <title>Koperasi - Simpanan</title>
   <!-- plugins:css -->
   <link rel="stylesheet" href="../../template2/vendors/feather/feather.css">
   <link rel="stylesheet" href="../../template2/vendors/ti-icons/css/themify-icons.css">
@@ -92,7 +92,7 @@
             <div class="col-md-12 grid-margin">
               <div class="row">
                 <div class="col-12 col-xl-8 mb-2 mb-xl-0">
-                  <h1 class="font-weight-bold">Halaman Data Peminjaman</h1>
+                  <h1 class="font-weight-bold">Halaman Data Pemasukan</h1>
                 </div>
               </div>
             </div>
@@ -109,7 +109,7 @@
                 <p class="card-title text-white">Total Saldo</p>                      
                 <div class="row">
                   <div class="col-8 text-white">
-                    <h3><?php echo $data_total['total']; ?> Saldo</h3>
+                    <h3><?php echo $data_total['total']; ?> Pemasukan</h3>
                     <p class="text-white font-weight-500 mb-0">
                       Total Nilai Saldo: Rp <?php echo number_format($data_total['total_saldo'], 0, ',', '.'); ?>
                     </p>
@@ -120,27 +120,99 @@
               </div>
             </div>
           </div>
+          <!-- Tabel Saldo ksp -->
+          <div class="row">
+            <div class="col-md-12 grid-margin stretch-card">
+              <div class="card">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="card-title mb-3">Daftar Nominal Pemasukan</h4>
+                  </div>
+                  <table class="table table-bordered" border = "1">
+                    <thead>
+                      <tr>
+                        <th><b>Jumlah Simpanan Pokok</b></th>
+                        <th>Jumlah Simpanan Wajib</th>
+                        <th>Jumlah Simpanan Sukarela</th>
+                      </tr>
+                      <?php
+                        $query_jumlah_simpanan_pokok= mysqli_query($koneksi, "select sum(nominal) as total from simpanan where jenissimpanan_id=1");
+                        $jumlah_simpanan_pokok = mysqli_fetch_assoc($query_jumlah_simpanan_pokok);
+
+                        $query_jumlah_simpanan_wajib= mysqli_query($koneksi, "select sum(nominal) as total from simpanan where jenissimpanan_id=2");
+                        $jumlah_simpanan_wajib = mysqli_fetch_assoc($query_jumlah_simpanan_wajib);
+
+                        $query_jumlah_simpanan_sukarela= mysqli_query($koneksi, "select sum(nominal) as total from simpanan where jenissimpanan_id=3");
+                        $jumlah_simpanan_sukarela = mysqli_fetch_assoc($query_jumlah_simpanan_sukarela);
+
+                        $query_jumlah_simpanan= mysqli_query($koneksi, "select sum(nominal) as total from simpanan");
+                        $jumlah_simpanan = mysqli_fetch_assoc($query_jumlah_simpanan);
+
+                        $query_jumlah_pinjaman_acc= mysqli_query($koneksi, "select sum(jumlah_pinjaman) as total from pinjaman where status='acc'");
+                        $jumlah_pinjaman_acc = mysqli_fetch_assoc($query_jumlah_pinjaman_acc);
+
+                        $query_jumlah_angsuran_lunas= mysqli_query($koneksi, "select sum(nominal) as total from angsuran where status='l'");
+                        $jumlah_angsuran_lunas= mysqli_fetch_assoc($query_jumlah_angsuran_lunas);
+
+                        $query_jumlah_bunga_lunas= mysqli_query($koneksi, "select sum(bunga) as total from angsuran where status='l'");
+                        $jumlah_bunga_lunas= mysqli_fetch_assoc($query_jumlah_bunga_lunas);
+                      ?>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <th>Rp <?=$jumlah_simpanan_pokok['total']?></th>
+                        <th>Rp <?=$jumlah_simpanan_wajib['total']?></th>
+                        <th>Rp <?=$jumlah_simpanan_sukarela['total']?></th>
+                      </tr>
+                      <tr>
+                        <th colspan=2>Total Simpanan</th>
+                        <th><?="Rp ".number_format($jumlah_simpanan['total'],2,',','.')?></th>
+                      </tr>
+                      <tr>
+                        <th colspan=2>Total Pinjaman</th>
+                        <th><?="Rp ".number_format($jumlah_pinjaman_acc['total'],2,',','.')?></th>
+                      </tr>
+                      <tr>
+                        <th colspan=2>Total Angsuran Lunas</th>
+                        <th><?="Rp ".number_format($jumlah_angsuran_lunas['total'],2,',','.')?></th>
+                      </tr>
+                      <tr>
+                        <th colspan=2>Total Bunga Lunas</th>
+                        <th><?="Rp ".number_format($jumlah_angsuran_lunas['total'],2,',','.')?></th>
+                      </tr>
+                      <tr>
+                        <th colspan=2>Total Saldo</th>
+                        <th><?="Rp ".number_format($jumlah_simpanan['total']-$jumlah_pinjaman_acc['total']+$jumlah_angsuran_lunas['total']+$jumlah_bunga_lunas['total'],2,',','.')?></th>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Akhir Tabel Saldo ksp -->
+
           <div class="row">
             <div class="col-md-12 grid-margin stretch-card">
               <div class="card">
                 <div class="card-body">
                   <div class="d-flex justify-content-between align-items-center mb-3">
                     <h4 class="card-title mb-0">Daftar Data Pemasukan</h4>
-                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalTambahPinjaman">
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalTambahSimpanan">
                       <i class="ti-plus menu-icon"></i> Tambah Pemasukan
                     </button>
                   </div>
                   <!-- Modal Tambah Pinjaman -->
-                  <div class="modal fade" id="modalTambahPinjaman" tabindex="-1" role="dialog" aria-labelledby="modalTambahPinjamanLabel" aria-hidden="true">
+                  <div class="modal fade" id="modalTambahSimpanan" tabindex="-1" role="dialog" aria-labelledby="modalTambahSimpananLabel" aria-hidden="true">
                     <div class="modal-dialog modal-lg" role="document">
                       <div class="modal-content">
                         <div class="modal-header">
-                          <h5 class="modal-title" id="modalTambahPinjamanLabel">Tambah Data Pemasukan</h5>
+                          <h5 class="modal-title" id="modalTambahSimpananLabel">Tambah Data Pemasukan</h5>
                           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                           </button>
                         </div>
-                        <form id="formTambahPinjaman" action="../../proses/proses_tambah_pemasukan.php" method="POST">
+                        <form id="formTambahSimpanan" action="../../proses/proses_tambah_simpanan.php" method="POST">
                           <div class="modal-body">
                             <div class="form-group">
                               <label for="anggota_id">Nama Anggota</label>
@@ -155,19 +227,19 @@
                               </select>
                             </div>
                             <div class="form-group">
-                              <label for="jumlah_pinjaman">Nominal</label>
+                              <label for="nominal">Nominal</label>
                               <div class="input-group">
                                 <div class="input-group-prepend">
                                   <span class="input-group-text">Rp</span>
                                 </div>
-                                <input type="text" class="form-control currency" name="jumlah_pinjaman" placeholder="Masukkan Nominal Untuk Simpanan Sukarela" required>
+                                <input type="text" class="form-control currency" name="nominal" placeholder="Masukkan Nominal Untuk Simpanan Sukarela">
                               </div>
                             </div>
                             <div class="row">
                               <div class="col-md-6">
                                 <div class="form-group">
-                                  <label for="jenissimpanan">Jenis simpanan</label>
-                                  <select class="form-control" name="jenissimpanan" required>
+                                  <label for="jenissimpanan_id">Jenis simpanan</label>
+                                  <select class="form-control" name="jenissimpanan_id" required>
                                     <option value="">Pilih Jenis Simpanan</option>
                                     <?php
                                     $query_jenis = mysqli_query($koneksi, "select id, nama from jenissimpanan order by nama asc");
@@ -180,14 +252,14 @@
                               </div>
                               <div class="col-md-6">
                                 <div class="form-group">
-                                  <label for="tanggal_pengajuan">Tanggal</label>
-                                  <input type="date" class="form-control" name="tanggal_pengajuan" required>
+                                  <label for="tanggal">Tanggal</label>
+                                  <input type="date" class="form-control" name="tanggal" required>
                                 </div>
                               </div>
                             </div>
                           </div>
                           <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                            <button type="button" class="btn btn-danger" data-dismiss="modal">Batal</button>
                             <button type="submit" name="action" value="add" class="btn btn-primary">Simpan</button>
                           </div>
                         </form>
@@ -196,7 +268,7 @@
                   </div>
                   <!-- End Modal -->
                   <div class="table-responsive">
-                    <table id="tabelPinjaman" class="table table-striped table-borderless" style="width:100%">
+                    <table id="tabelSimpanan" class="table table-striped table-borderless" style="width:100%">
                       <thead>
                         <tr>
                           <th>No</th>
@@ -271,10 +343,10 @@
   <!-- container-scroller -->
 
   <!-- plugins:js -->
+  <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
   <script src="../../template2/vendors/js/vendor.bundle.base.js"></script>
   <!-- endinject -->
   <!-- Plugin js for this page -->
-  <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
   <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
@@ -320,45 +392,55 @@
         });
 
         // Form submission handling
-        $('#formTambahPinjaman').on('submit', function(e) {
-            var jumlahPinjaman = $('.currency').val().replace(/\./g, '');
-            $('.currency').val(jumlahPinjaman);
+        $('#formTambahSimpanan').on('submit', function(e) {
+            var nominal = $('.currency').val().replace(/\./g, '');
+            $('.currency').val(nominal);
         });
 
         // Set default date
         var today = new Date().toISOString().split('T')[0];
-        $('input[name="tanggal_pengajuan"]').val(today);
+        $('input[name="tanggal"]').val(today);
 
         // Initialize DataTable
-        var table = $('#tabelPinjaman').DataTable({
+        var table = $('#tabelSimpanan').DataTable({
             responsive: true,
-            dom: 'Bfrtip',
+            dom: 'Blfrtip',
+            lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
             buttons: [
-                {
-                    extend: 'copy',
-                    text: '<i class="ti-clipboard"></i> Copy',
-                    className: 'btn btn-info btn-sm'
-                },
-                {
-                    extend: 'csv',
-                    text: '<i class="ti-file"></i> CSV',
-                    className: 'btn btn-info btn-sm'
-                },
-                {
-                    extend: 'excel',
-                    text: '<i class="ti-file"></i> Excel',
-                    className: 'btn btn-success btn-sm'
-                },
-                {
-                    extend: 'pdf',
-                    text: '<i class="ti-file"></i> PDF',
-                    className: 'btn btn-danger btn-sm'
-                },
-                {
-                    extend: 'print',
-                    text: '<i class="ti-printer"></i> Print',
-                    className: 'btn btn-primary btn-sm'
-                }
+                        {
+                            extend: 'copy',
+                            text: '<i class="ti-clipboard"></i> Copy',
+                            className: 'btn btn-info btn-sm mb-5',
+                            exportOptions: {
+                                columns: [0, 1, 2, 3, 4]
+                            }
+                        },
+                        {
+                            extend: 'excel',
+                            text: '<i class="ti-file"></i> Excel',
+                            className: 'btn btn-success btn-sm mb-5',
+                            exportOptions: {
+                                columns: [0, 1, 2, 3, 4]
+                            }
+                        },
+                        {
+                            extend: 'pdf',
+                            text: '<i class="ti-file"></i> PDF',
+                            className: 'btn btn-danger btn-sm mb-5',
+                            exportOptions: {
+                                columns: [0, 1, 2, 3, 4]
+                            }
+                        },
+                        {
+                            extend: 'print',
+                            text: '<i class="ti-printer"></i> Print',
+                            className: 'btn btn-dark btn-sm mb-5',
+                            exportOptions: {
+                                columns: [0, 1, 2, 3, 4]
+                            }
+                        }
+                    
+                
             ],
             language: {
                 search: "Cari:",
@@ -374,20 +456,29 @@
                     previous: "Sebelumnya"
                 }
             },
-            order: [[5, "desc"]], // Urutkan berdasarkan tanggal pinjam secara descending
+            order: [[4, "desc"]], // Urutkan berdasarkan tanggal secara descending
             columnDefs: [
                 {
-                    targets: [2, 4], // kolom jumlah pinjaman dan angsuran
+                    targets: 0, // kolom nomor
+                    orderable: false
+                },
+                {
+                    targets: 3, // kolom nominal
                     render: function(data, type, row) {
-                        return type === 'display' ? 
-                            'Rp ' + new Intl.NumberFormat('id-ID').format(parseInt(data.replace(/[^\d]/g, ''))) :
-                            data;
+                        if (type === 'display' || type === 'filter') {
+                            return data;
+                        }
+                        return data.replace(/[^\d]/g, '');
                     }
                 },
                 {
-                    targets: -1, // kolom aksi
-                    orderable: false,
-                    searchable: false
+                    targets: 4, // kolom tanggal
+                    render: function(data, type, row) {
+                        if (type === 'sort') {
+                            return row[4].split('data-sort="')[1].split('"')[0];
+                        }
+                        return data;
+                    }
                 }
             ]
         });
