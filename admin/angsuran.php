@@ -129,7 +129,6 @@
                           <th>Tanggal Jatuh Tempo</th>
                           <th>Tanggal Pelunasan</th>
                           <th>Status</th>
-                          <th>Bukti</th>
                           <th>Aksi</th>
                         </tr>
                       </thead>
@@ -157,15 +156,6 @@
                             <?php } ?>
                           </td>
                           <td>
-                            <?php if($row['bukti']){ ?>
-                              <button type="button" class="btn btn-sm btn-info" onclick="window.open('../uploads/bukti_pembayaran/<?php echo $row['bukti']; ?>', '_blank')">
-                                <i class="ti-file"></i>
-                              </button>
-                            <?php } else { ?>
-                              -
-                            <?php } ?>
-                          </td>
-                          <td>
                             <button type="button" class="btn btn-sm btn-info" onclick="window.location.href='detail_angsuran.php?id=<?php echo $row['id']; ?>'">
                               <i class="ti-eye"></i>
                             </button>
@@ -186,60 +176,6 @@
             </div>
           </div>
 
-            <h2 class="font-weight-bold mb-5">Verifikasi Angsuran</h2>
-            <div class=" grid-margin stretch-card">
-              <div class="card">
-                <div class="card-body">
-                  <h4 class="card-title">Form Vrifikasi Angsuran</h4>
-                  <p class="card-description">
-                    Form Verifikasi Angsuran
-                  </p>
-                  <form class="forms-sample">
-                    <div class="form-group">
-                      <div class="form-group">
-                        <label for="anggota_id">Nama Peminjam</label>
-                        <select class="form-control" name="anggota_id">
-                          <option>Pemi</option>
-                          <option>Aziz</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div class="form-group">
-                      <label for="Tanggal">Tanggal Peminjaman</label>
-                      <input type="date" class="form-control" name="tanggal_pinjam">
-                    </div>
-                    <div class="form-group">
-                      <div class="form-group">
-                        <label for="status">Status Peminjam</label>
-                        <select class="form-control" name="status">
-                          <option>Aktif</option>
-                          <option>Lunas</option>
-                          <option>Terlambat</option>
-                          <option>Macet</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div class="form-group">
-                      <label for="jumlah_pinjaman">Nominal Peminjaman</label>
-                      <input type="number" class="form-control" name="jumlah_pinjaman" placeholder="Masukkan Nominal Peminjaman">
-                    </div>
-                    <div class="form-group">
-                      <div class="form-group">
-                        <label for="tenor">Tenor</label>
-                        <select class="form-control" name="tenor">
-                          <option>10 Bulan</option>
-                          <option>12 Bulan</option>
-                          <option>20 Bulan</option>
-                          <option>24 Bulan</option>
-                        </select>
-                      </div>
-                    </div>
-                    <button type="submit" class="btn btn-primary mr-2">Submit</button>
-                    <button class="btn btn-light">Cancel</button>
-                  </form>
-                </div>
-              </div>
-            </div>
         <!-- content-wrapper ends -->
         <!-- partial:partials/_footer.html -->
         <footer class="footer">

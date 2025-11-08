@@ -284,17 +284,32 @@
                           <td>
                             <div class="btn-group" role="group">
                               <?php if($row['status'] == 'pending'): ?>
-                              <a href="../../proses/pinjaman_acc.php?pinjaman_id=<?php echo $row['id_pinjaman']; ?>" 
-                                 onclick="accPinjaman(<?php echo $row['id_pinjaman']; ?>)"
-                                 class="btn btn-warning btn-sm" title="ACC Pinjaman">
-                                <i class="ti-check"></i>
-                              </a>
-                              <a href="javascript:void(0);" 
-                                 onclick="tolakPinjaman(<?php echo $row['id_pinjaman']; ?>)"
-                                 class="btn btn-danger btn-sm" title="tolak Pinjaman">
-                                <i class="ti-close"></i>
-                              </a>
+                                <a href="../../proses/pinjaman_acc.php?pinjaman_id=<?php echo $row['id_pinjaman']; ?>" 
+                                   class="btn btn-warning btn-sm" title="ACC Pinjaman">
+                                  <i class="ti-check"></i>
+                                </a>
+                                <a href="javascript:void(0);" 
+                                   onclick="if(confirm('Apakah Anda yakin ingin menolak pinjaman ini?')) window.location.href='../../proses/pinjaman_acc.php?action=tolak&pinjaman_id=<?php echo $row['id_pinjaman']; ?>'"
+                                   class="btn btn-danger btn-sm" title="Tolak Pinjaman">
+                                  <i class="ti-close"></i>
+                                </a>
                               <?php endif; ?>
+                              
+                              <?php if($row['status'] == 'acc'): ?>
+                                <button type="button" 
+                                        class="btn btn-success btn-sm" 
+                                        onclick="lihatAngsuran(<?php echo $row['id_pinjaman']; ?>)"
+                                        title="Lihat Angsuran">
+                                  <i class="ti-money"></i>
+                                </button>
+                              <?php endif; ?>
+                              
+                              <button type="button" 
+                                      class="btn btn-info btn-sm" 
+                                      onclick="window.location.href='detail_pinjaman.php?id=<?php echo $row['id_pinjaman']; ?>'"
+                                      title="Detail Pinjaman">
+                                <i class="ti-eye"></i>
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -336,6 +351,69 @@
     </div>   
     <!-- page-body-wrapper ends -->
   </div>
+  <!-- Modal Data Angsuran -->
+  <div class="modal fade" id="modalAngsuran" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Data Angsuran</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <table class="table table-borderless">
+                <tr>
+                  <td>Total Pinjaman</td>
+                  <td>:</td>
+                  <td id="totalPinjaman"></td>
+                </tr>
+                <tr>
+                  <td>Total Angsuran</td>
+                  <td>:</td>
+                  <td id="totalAngsuran"></td>
+                </tr>
+              </table>
+            </div>
+            <div class="col-md-6">
+              <table class="table table-borderless">
+                <tr>
+                  <td>Sisa Angsuran</td>
+                  <td>:</td>
+                  <td id="sisaAngsuran"></td>
+                </tr>
+                <tr>
+                  <td>Status</td>
+                  <td>:</td>
+                  <td id="statusPinjaman"></td>
+                </tr>
+              </table>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>No</th>
+                  <th>Tanggal Bayar</th>
+                  <th>Jumlah Bayar</th>
+                  <th>Keterangan</th>
+                </tr>
+              </thead>
+              <tbody id="tableAngsuran">
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- container-scroller -->
 
   <!-- plugins:js -->
@@ -463,6 +541,59 @@
         // Menambahkan class untuk styling button
         $('.dt-buttons').addClass('mb-3');
     });
+
+    function formatRupiah(angka) {
+        return 'Rp ' + new Intl.NumberFormat('id-ID').format(angka);
+    }
+
+    function lihatAngsuran(pinjamanId) {
+        // Ambil data pinjaman dan angsuran
+        $.ajax({
+            url: '../../proses/get_angsuran.php',
+            type: 'GET',
+            data: {
+                pinjaman_id: pinjamanId
+            },
+            dataType: 'json',
+            success: function(response) {
+                var data = response;
+                
+                // Update informasi pinjaman
+                $('#totalPinjaman').text(formatRupiah(data.pinjaman.jumlah_pinjaman));
+                $('#totalAngsuran').text(formatRupiah(data.total_angsuran));
+                $('#sisaAngsuran').text(formatRupiah(data.pinjaman.jumlah_pinjaman - data.total_angsuran));
+                
+                var statusBadge = '';
+                if (data.pinjaman.status === 'acc') {
+                    statusBadge = '<span class="badge badge-success">Aktif</span>';
+                } else if (data.pinjaman.status === 'lunas') {
+                    statusBadge = '<span class="badge badge-info">Lunas</span>';
+                }
+                $('#statusPinjaman').html(statusBadge);
+
+                // Isi tabel angsuran
+                var html = '';
+                data.angsuran.forEach(function(item, index) {
+                    html += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${item.tgl_pelunasan}</td>
+                            <td>${formatRupiah(item.nominal)}</td>
+                            <td>${item.status || '-'}</td>
+                        </tr>
+                    `;
+                });
+                
+                $('#tableAngsuran').html(html);
+                
+                // Tampilkan modal
+                $('#modalAngsuran').modal('show');
+            },
+            error: function(xhr, status, error) {
+                alert('Terjadi kesalahan saat mengambil data angsuran');
+            }
+        });
+    }
   </script>
 </body>
 
