@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-
+ <?php include '../cek_login.php'; ?>
 <head>
   <!-- Required meta tags -->
   <meta charset="utf-8">
