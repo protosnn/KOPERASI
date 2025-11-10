@@ -5,7 +5,7 @@
   <!-- Required meta tags -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <title>Koperasi - Peminjaman</title>
+  <title>Koperasi - Data Anggota</title>
   <!-- plugins:css -->
   <link rel="stylesheet" href="../template2/vendors/feather/feather.css">
   <link rel="stylesheet" href="../template2/vendors/ti-icons/css/themify-icons.css">
@@ -77,42 +77,37 @@
           </div>
         </div>
       </div>
-      <!-- partial:setting_pannel -->
+      <!-- partial:setting_panel -->
 
       <!-- sidebar -->
-       <?php
-      include '../layout/sidebar.php';
-      ?>
+      <?php include '../layout/sidebar.php'; ?>
       <!-- sidebar -->
 
-    <!-- partial -->
       <div class="main-panel">
         <div class="content-wrapper">
           <div class="row">
             <div class="col-md-12 grid-margin">
               <div class="row">
                 <div class="col-12 col-xl-8 mb-2 mb-xl-0">
-                  <h1 class="font-weight-bold">Halaman Data Peminjaman</h1>
+                  <h1 class="font-weight-bold">Halaman Data Anggota</h1>
                 </div>
               </div>
             </div>
           </div>
-            <div class="stretch-card grid-margin grid-margin-md-0 mb-5">
+
+          <div class="stretch-card grid-margin grid-margin-md-0 mb-5">
             <div class="card data-icon-card-primary">
               <div class="card-body">
                 <?php
                 require_once '../koneksi.php';
-                $query_total = "SELECT COUNT(*) as total, SUM(jumlah_pinjaman) as total_pinjaman FROM pinjaman WHERE status='aktif'";
+                $query_total = "SELECT COUNT(*) as total FROM anggota";
                 $result_total = mysqli_query($koneksi, $query_total);
                 $data_total = mysqli_fetch_assoc($result_total);
                 ?>
-                <p class="card-title text-white">Total Anggota Aktif</p>                      
+                <p class="card-title text-white">Total Anggota</p>                      
                 <div class="row">
                   <div class="col-8 text-white">
-                    <h3><?php echo $data_total['total']; ?> Pinjaman</h3>
-                    <p class="text-white font-weight-500 mb-0">
-                      Total Nilai Pinjaman: Rp <?php echo number_format($data_total['total_pinjaman'], 0, ',', '.'); ?>
-                    </p>
+                    <h3><?php echo $data_total['total']; ?> Anggota</h3>
                   </div>
                   <div class="col-4 background-icon">
                   </div>
@@ -120,22 +115,24 @@
               </div>
             </div>
           </div>
+
           <div class="row">
             <div class="col-md-12 grid-margin stretch-card">
               <div class="card">
                 <div class="card-body">
                   <div class="d-flex justify-content-between align-items-center mb-3">
                     <h4 class="card-title mb-0">Daftar Anggota</h4>
-                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalTambahPinjaman">
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalTambahAnggota">
                       <i class="ti-plus menu-icon"></i> Tambah Anggota
                     </button>
                   </div>
-                  <!-- Modal Tambah Pinjaman -->
-                  <div class="modal fade" id="modalTambahPinjaman" tabindex="-1" role="dialog" aria-labelledby="modalTambahPinjamanLabel" aria-hidden="true">
+
+                  <!-- Modal Tambah Anggota -->
+                  <div class="modal fade" id="modalTambahAnggota" tabindex="-1" role="dialog" aria-labelledby="modalTambahAnggotaLabel" aria-hidden="true">
                     <div class="modal-dialog modal-lg" role="document">
                       <div class="modal-content">
                         <div class="modal-header">
-                          <h5 class="modal-title" id="modalTambahPinjamanLabel">Tambah Data Anggota</h5>
+                          <h5 class="modal-title" id="modalTambahAnggotaLabel">Tambah Data Anggota</h5>
                           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                           </button>
@@ -143,31 +140,25 @@
                         <form id="formTambahAnggota" action="../proses/proses_tambah_anggota.php" method="POST">
                           <div class="modal-body">
                             <div class="form-group">
-                              <label for="anggota_id">Nama</label>
-                              <input type="text" class="form-control" name="nama_anggota" required>
-                              </select>
+                              <label for="nama">Nama</label>
+                              <input type="text" class="form-control" name="nama" required>
                             </div>
                             <div class="form-group">
-                              <label for="anggota_id">Password</label>
-                              <input type="text" class="form-control" name="password" required>
-                              </select>
-                            </div>
-                            <div class="form-group">
-                              <label for="anggota_id">Alamat</label>
-                              <input type="text" class="form-control" name="alamat" required>
-                              </select>
-                            </div>
-                            <div class="form-group">
-                              <label for="anggota_id">Telepon</label>
-                              <input type="text" class="form-control" name="telpon" required>
-                              </select>
-                            </div>
-                            <div class="form-group">
-                              <label for="anggota_id">Username</label>
+                              <label for="username">Username</label>
                               <input type="text" class="form-control" name="username" required>
-                              </select>
                             </div>
-                            
+                            <div class="form-group">
+                              <label for="password">Password</label>
+                              <input type="text" class="form-control" name="password" required>
+                            </div>
+                            <div class="form-group">
+                              <label for="alamat">Alamat</label>
+                              <input type="text" class="form-control" name="alamat" required>
+                            </div>
+                            <div class="form-group">
+                              <label for="telpon">Telepon</label>
+                              <input type="text" class="form-control" name="telpon" required>
+                            </div>
                           </div>
                           <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
@@ -177,47 +168,122 @@
                       </div>
                     </div>
                   </div>
-                  <!-- End Modal -->
+                  <!-- End Modal Tambah -->
+
+                  <!-- Modal Edit Anggota -->
+                  <div class="modal fade" id="modalEditAnggota" tabindex="-1" role="dialog" aria-labelledby="modalEditAnggotaLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg" role="document">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h5 class="modal-title" id="modalEditAnggotaLabel">Edit Data Anggota</h5>
+                          <button  type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                          </button>
+                        </div>
+                        <form id="formEditAnggota" action="../proses/edit_anggota.php" method="POST">
+                          <div class="modal-body">
+                            <input type="hidden" name="id" id="edit_id">
+                            <div class="form-group">
+                              <label for="edit_nama">Nama</label>
+                              <input type="text" class="form-control" id="edit_nama" name="nama" required>
+                            </div>
+                            <div class="form-group">
+                              <label for="edit_username">Username</label>
+                              <input type="text" class="form-control" id="edit_username" name="username" required>
+                            </div>
+                            <div class="form-group">
+                              <label for="edit_password">Password</label>
+                              <input type="text" class="form-control" id="edit_password" name="password" required>
+                            </div>
+                            <div class="form-group">
+                              <label for="edit_alamat">Alamat</label>
+                              <input type="text" class="form-control" id="edit_alamat" name="alamat" required>
+                            </div>
+                            <div class="form-group">
+                              <label for="edit_telpon">Telepon</label>
+                              <input type="text" class="form-control" id="edit_telpon" name="telpon" required>
+                            </div>
+                          </div>
+                          <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- End Modal Edit -->
+
                   <div class="table-responsive">
                     <table id="tabelAnggota" class="table table-striped table-borderless" style="width:100%">
                       <thead>
                         <tr>
                           <th>No</th>
-                          <th>Nama Anggota</th>
+                          <th>Nama</th>
+                          <th>Username</th>
                           <th>Password</th>
                           <th>Alamat</th>
                           <th>Telepon</th>
-                          <th>Username</th>
+                          <th>Aksi</th>
                         </tr>  
                       </thead>
                       <tbody>
-                       
-                  </script>
+                        <?php
+                        $query = mysqli_query($koneksi, "SELECT * FROM anggota");
+                        $no = 1;
+                        while($result = mysqli_fetch_array($query)){
+                        ?>
+                        <tr>
+                          <td><?php echo $no++; ?></td>
+                          <td><?php echo $result['nama']; ?></td>
+                          <td><?php echo $result['username']; ?></td>
+                          <td><?php echo $result['password']; ?></td>
+                          <td><?php echo $result['almat']; ?></td>
+                          <td><?php echo $result['telpon']; ?></td>
+                          <td>
+                            <!-- Tombol Edit -->
+                            <button type="button" class="btn btn-warning btn-sm" 
+                                    onclick="bukaModalEdit(
+                                      '<?php echo $result['id']; ?>',
+                                      '<?php echo $result['nama']; ?>',
+                                      '<?php echo $result['username']; ?>',
+                                      '<?php echo $result['password']; ?>',
+                                      '<?php echo $result['almat']; ?>',
+                                      '<?php echo $result['telpon']; ?>'
+                                    )">
+                              <i class="ti-pencil"></i> Edit
+                            </button>
+                            
+                            <!-- Tombol Hapus -->
+                            <a href="../proses/proses_hapus_anggota.php?id=<?php echo $result['id']; ?>" 
+                               class="btn btn-danger btn-sm" 
+                               onclick="return confirm('Yakin ingin menghapus data anggota <?php echo $result['nama']; ?>?')">
+                              <i class="ti-trash"></i> Hapus
+                            </a>
+                          </td>
+                        </tr>
+                        <?php } ?>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        <!-- content-wrapper ends -->
-        <!-- partial:partials/_footer.html -->
+        </div>
+
         <footer class="footer">
           <div class="d-sm-flex justify-content-center justify-content-sm-between">
-            <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">Copyright © 2021.  Premium <a href="https://www.bootstrapdash.com/" target="_blank">Bootstrap admin template</a> from BootstrapDash. All rights reserved.</span>
+            <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">Copyright © 2021. Premium <a href="https://www.bootstrapdash.com/" target="_blank">Bootstrap admin template</a> from BootstrapDash. All rights reserved.</span>
             <span class="float-none float-sm-right d-block mt-1 mt-sm-0 text-center">Hand-crafted & made with <i class="ti-heart text-danger ml-1"></i></span>
           </div>
           <div class="d-sm-flex justify-content-center justify-content-sm-between">
             <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">Distributed by <a href="https://www.themewagon.com/" target="_blank">Themewagon</a></span> 
           </div>
-        </footer> 
-        <!-- partial -->
+        </footer>
       </div>
-      <!-- main-panel ends -->
-    </div>   
-    <!-- page-body-wrapper ends -->
+    </div>
   </div>
-  <!-- Modal Data Angsuran -->
- 
-
-  <!-- container-scroller -->
 
   <!-- plugins:js -->
   <script src="../template2/vendors/js/vendor.bundle.base.js"></script>
@@ -235,7 +301,6 @@
   <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
   <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
   <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap4.min.js"></script>
-
   <!-- End plugin js for this page -->
   <!-- inject:js -->
   <script src="../template2/js/off-canvas.js"></script>
@@ -245,41 +310,9 @@
   <!-- endinject -->
 
   <script>
-    // Format currency
-    function formatRupiah(angka) {
-        var number_string = angka.replace(/[^,\d]/g, '').toString(),
-            split = number_string.split(','),
-            sisa = split[0].length % 3,
-            rupiah = split[0].substr(0, sisa),
-            ribuan = split[0].substr(sisa).match(/\d{3}/gi);
-
-        if (ribuan) {
-            separator = sisa ? '.' : '';
-            rupiah += separator + ribuan.join('.');
-        }
-
-        rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
-        return rupiah;
-    }
-
     $(document).ready(function() {
-        // Currency input formatting
-        $('.currency').on('keyup', function() {
-            $(this).val(formatRupiah($(this).val()));
-        });
-
-        // Form submission handling
-        $('#formTambahPinjaman').on('submit', function(e) {
-            var jumlahPinjaman = $('.currency').val().replace(/\./g, '');
-            $('.currency').val(jumlahPinjaman);
-        });
-
-        // Set default date
-        var today = new Date().toISOString().split('T')[0];
-        $('input[name="tanggal_pengajuan"]').val(today);
-
         // Initialize DataTable
-        var table = $('#tabelPinjaman').DataTable({
+        var table = $('#tabelAnggota').DataTable({
             responsive: true,
             dom: 'Bfrtip',
             buttons: [
@@ -323,16 +356,7 @@
                     previous: "Sebelumnya"
                 }
             },
-            order: [[5, "desc"]], // Urutkan berdasarkan tanggal pinjam secara descending
             columnDefs: [
-                {
-                    targets: [2, 4], // kolom jumlah pinjaman dan angsuran
-                    render: function(data, type, row) {
-                        return type === 'display' ? 
-                            'Rp ' + new Intl.NumberFormat('id-ID').format(parseInt(data.replace(/[^\d]/g, ''))) :
-                            data;
-                    }
-                },
                 {
                     targets: -1, // kolom aksi
                     orderable: false,
@@ -345,60 +369,23 @@
         $('.dt-buttons').addClass('mb-3');
     });
 
-    function formatRupiah(angka) {
-        return 'Rp ' + new Intl.NumberFormat('id-ID').format(angka);
-    }
-
-    function lihatAngsuran(pinjamanId) {
-        // Ambil data pinjaman dan angsuran
-        $.ajax({
-            url: '../proses/get_angsuran.php',
-            type: 'GET',
-            data: {
-                pinjaman_id: pinjamanId
-            },
-            dataType: 'json',
-            success: function(response) {
-                var data = response;
-                
-                // Update informasi pinjaman
-                $('#totalPinjaman').text(formatRupiah(data.pinjaman.jumlah_pinjaman));
-                $('#totalAngsuran').text(formatRupiah(data.total_angsuran));
-                $('#sisaAngsuran').text(formatRupiah(data.pinjaman.jumlah_pinjaman - data.total_angsuran));
-                
-                var statusBadge = '';
-                if (data.pinjaman.status === 'acc') {
-                    statusBadge = '<span class="badge badge-success">Aktif</span>';
-                } else if (data.pinjaman.status === 'lunas') {
-                    statusBadge = '<span class="badge badge-info">Lunas</span>';
-                }
-                $('#statusPinjaman').html(statusBadge);
-
-                // Isi tabel angsuran
-                var html = '';
-                data.angsuran.forEach(function(item, index) {
-                    html += `
-                        <tr>
-                            <td>${index + 1}</td>
-                            <td>${item.tgl_pelunasan}</td>
-                            <td>${formatRupiah(item.nominal)}</td>
-                            <td>${item.status || '-'}</td>
-                        </tr>
-                    `;
-                });
-                
-                $('#tableAngsuran').html(html);
-                
-                // Tampilkan modal
-                $('#modalAngsuran').modal('show');
-            },
-            error: function(xhr, status, error) {
-                alert('Terjadi kesalahan saat mengambil data angsuran');
-            }
-        });
-    }
+    function bukaModalEdit(id, nama, username, password, alamat, telpon) {
+    // Isi data ke form
+    document.getElementById('edit_id').value = id;
+    document.getElementById('edit_nama').value = nama;
+    document.getElementById('edit_username').value = username;
+    document.getElementById('edit_password').value = password;
+    document.getElementById('edit_alamat').value = alamat;
+    document.getElementById('edit_telpon').value = telpon;
+    
+    // Debug: cek apakah modal ditemukan
+    console.log('Modal element:', document.getElementById('modalEditAnggota'));
+    
+    // Tampilkan modal
+    var modalElement = document.getElementById('modalEditAnggota');
+    $(modalElement).modal('show');
+}
   </script>
 </body>
-
 </html>
 
