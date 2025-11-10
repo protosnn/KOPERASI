@@ -176,7 +176,7 @@
                       <div class="modal-content">
                         <div class="modal-header">
                           <h5 class="modal-title" id="modalEditAnggotaLabel">Edit Data Anggota</h5>
-                          <button  type="button" class="close" data-dismiss="modal" aria-label="Close">
+                          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                           </button>
                         </div>
@@ -255,7 +255,7 @@
                             </button>
                             
                             <!-- Tombol Hapus -->
-                            <a href="../proses/proses_hapus_anggota.php?id=<?php echo $result['id']; ?>" 
+                            <a href="../proses/delete_anggota.php?id=<?php echo $result['id']; ?>" 
                                class="btn btn-danger btn-sm" 
                                onclick="return confirm('Yakin ingin menghapus data anggota <?php echo $result['nama']; ?>?')">
                               <i class="ti-trash"></i> Hapus
@@ -288,8 +288,14 @@
   <!-- plugins:js -->
   <script src="../template2/vendors/js/vendor.bundle.base.js"></script>
   <!-- endinject -->
+  
+  <!-- jQuery pertama (sangat penting) -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+
   <!-- Plugin js for this page -->
-  <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
   <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
@@ -302,6 +308,7 @@
   <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
   <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap4.min.js"></script>
   <!-- End plugin js for this page -->
+  
   <!-- inject:js -->
   <script src="../template2/js/off-canvas.js"></script>
   <script src="../template2/js/hoverable-collapse.js"></script>
@@ -310,7 +317,32 @@
   <!-- endinject -->
 
   <script>
+   
+    function bukaModalEdit(id, nama, username, password, alamat, telpon) {
+        console.log('Memanggil bukaModalEdit dengan data:', {id, nama, username, password, alamat, telpon});
+        
+        // Isi data ke form
+        $('#edit_id').val(id);
+        $('#edit_nama').val(nama);
+        $('#edit_username').val(username);
+        $('#edit_password').val(password);
+        $('#edit_alamat').val(alamat);
+        $('#edit_telpon').val(telpon);
+        
+        // Tampilkan modal
+        $('#modalEditAnggota').modal('show');
+        console.log('Modal seharusnya terbuka sekarang');
+    }
+
     $(document).ready(function() {
+        console.log('Document ready, jQuery version:', $.fn.jquery);
+        
+        // Test modal manual
+        window.testModal = function() {
+            $('#modalEditAnggota').modal('show');
+            console.log('Test modal dipanggil');
+        };
+
         // Initialize DataTable
         var table = $('#tabelAnggota').DataTable({
             responsive: true,
@@ -367,25 +399,15 @@
 
         // Menambahkan class untuk styling button
         $('.dt-buttons').addClass('mb-3');
+        
+        // Debug: cek apakah modal ada
+        console.log('Modal element:', $('#modalEditAnggota').length);
+        if ($('#modalEditAnggota').length === 0) {
+            console.error('Modal tidak ditemukan!');
+        } else {
+            console.log('Modal ditemukan');
+        }
     });
-
-    function bukaModalEdit(id, nama, username, password, alamat, telpon) {
-    // Isi data ke form
-    document.getElementById('edit_id').value = id;
-    document.getElementById('edit_nama').value = nama;
-    document.getElementById('edit_username').value = username;
-    document.getElementById('edit_password').value = password;
-    document.getElementById('edit_alamat').value = alamat;
-    document.getElementById('edit_telpon').value = telpon;
-    
-    // Debug: cek apakah modal ditemukan
-    console.log('Modal element:', document.getElementById('modalEditAnggota'));
-    
-    // Tampilkan modal
-    var modalElement = document.getElementById('modalEditAnggota');
-    $(modalElement).modal('show');
-}
   </script>
 </body>
 </html>
-

@@ -1,17 +1,34 @@
 <?php
-include 'koneksi.php';
+include '../koneksi.php';
 
 if (isset($_GET['id'])) {
     $id = $_GET['id'];
     
-    $query = "DELETE FROM anggota WHERE id = $id";
-    
-    if (mysqli_query($koneksi, $query)) {
-        header("Location: anggota.php?pesan=hapus_berhasil");
+    // Validasi ID
+    if (is_numeric($id)) {
+        $query = "DELETE FROM anggota WHERE id = $id";
+        
+        if (mysqli_query($koneksi, $query)) {
+            echo "<script>
+                    alert('Data berhasil dihapus');
+                    window.location.href = '../anggota.php';
+                  </script>";
+        } else {
+            echo "<script>
+                    alert('Gagal menghapus data: " . mysqli_error($koneksi) . "');
+                    window.location.href = '../anggota.php';
+                  </script>";
+        }
     } else {
-        header("Location: anggota.php?pesan=hapus_gagal");
+        echo "<script>
+                alert('ID tidak valid');
+                window.location.href = '../anggota.php';
+              </script>";
     }
 } else {
-    header("Location: anggota.php?pesan=id_tidak_valid");
+    echo "<script>
+            alert('ID tidak ditemukan');
+            window.location.href = '../anggota.php';
+          </script>";
 }
 ?>
