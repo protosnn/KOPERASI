@@ -37,8 +37,8 @@
             </div>
           </li>
           <li class="nav-item">
-            <a class="nav-link" data-toggle="collapse" href="#tables" aria-expanded="false" aria-controls="tables">
-              <i class="icon-grid-2 menu-icon"></i>
+            <a class="nav-link"  href="http://localhost/koperasi/admin/anggota.php" aria-controls="form-elements">
+              <i class="icon-columns menu-icon"></i>
               <span class="menu-title">Anggota</span>
             </a>
           </li>

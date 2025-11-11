@@ -298,10 +298,138 @@
                               <?php if($row['status'] == 'acc'): ?>
                                 <button type="button" 
                                         class="btn btn-success btn-sm" 
-                                        onclick="lihatAngsuran(<?php echo $row['id_pinjaman']; ?>)"
+                                        data-toggle="modal"
+                                        data-target="#modalAngsuran<?php echo $row['id_pinjaman']; ?>"
                                         title="Lihat Angsuran">
                                   <i class="ti-money"></i>
                                 </button>
+
+                                <!-- Modal Angsuran untuk ID <?php echo $row['id_pinjaman']; ?> -->
+                                <div class="modal fade" id="modalAngsuran<?php echo $row['id_pinjaman']; ?>" tabindex="-1" role="dialog" aria-hidden="true">
+                                  <div class="modal-dialog modal-lg" role="document">
+                                    <div class="modal-content">
+                                      <div class="modal-header">
+                                        <h5 class="modal-title"><i class="ti-money mr-2"></i>Detail Angsuran Pinjaman</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                          <span aria-hidden="true">&times;</span>
+                                        </button>
+                                      </div>
+                                      <div class="modal-body">
+                                        <?php
+                                        // Query untuk mendapatkan data angsuran
+                                        $query_angsuran = "SELECT id, nominal, tgl_pelunasan, status 
+                                                         FROM angsuran 
+                                                         WHERE pinjaman_id = ? 
+                                                         ORDER BY tgl_pelunasan ASC";
+                                        $stmt = mysqli_prepare($koneksi, $query_angsuran);
+                                        mysqli_stmt_bind_param($stmt, "i", $row['id_pinjaman']);
+                                        mysqli_stmt_execute($stmt);
+                                        $result_angsuran = mysqli_stmt_get_result($stmt);
+                                        
+                                        // Hitung total angsuran
+                                        $total_angsuran = 0;
+                                        $angsuran_list = [];
+                                        while($ang = mysqli_fetch_assoc($result_angsuran)) {
+                                            $total_angsuran += $ang['nominal'];
+                                            $angsuran_list[] = $ang;
+                                        }
+                                        
+                                        $sisa_angsuran = $row['jumlah_pinjaman'] - $total_angsuran;
+                                        ?>
+                                        
+                                        <div class="row mb-4">
+                                          <div class="col-md-6">
+                                            <div class="card bg-light">
+                                              <div class="card-body">
+                                                <h6 class="card-title text-primary">Informasi Pinjaman</h6>
+                                                <table class="table table-borderless table-sm mb-0">
+                                                  <tr>
+                                                    <td style="width: 45%">Total Pinjaman</td>
+                                                    <td style="width: 5%">:</td>
+                                                    <td style="width: 50%">Rp <?php echo number_format($row['jumlah_pinjaman'], 0, ',', '.'); ?></td>
+                                                  </tr>
+                                                  <tr>
+                                                    <td>Total Angsuran</td>
+                                                    <td>:</td>
+                                                    <td>Rp <?php echo number_format($total_angsuran, 0, ',', '.'); ?></td>
+                                                  </tr>
+                                                </table>
+                                              </div>
+                                            </div>
+                                          </div>
+                                          <div class="col-md-6">
+                                            <div class="card bg-light">
+                                              <div class="card-body">
+                                                <h6 class="card-title text-primary">Status Pembayaran</h6>
+                                                <table class="table table-borderless table-sm mb-0">
+                                                  <tr>
+                                                    <td style="width: 45%">Sisa Angsuran</td>
+                                                    <td style="width: 5%">:</td>
+                                                    <td style="width: 50%">Rp <?php echo number_format($sisa_angsuran, 0, ',', '.'); ?></td>
+                                                  </tr>
+                                                  <tr>
+                                                    <td>Status</td>
+                                                    <td>:</td>
+                                                    <td>
+                                                      <?php if($sisa_angsuran <= 0): ?>
+                                                        <span class="badge badge-success">Lunas</span>
+                                                      <?php else: ?>
+                                                        <span class="badge badge-info">Aktif</span>
+                                                      <?php endif; ?>
+                                                    </td>
+                                                  </tr>
+                                                </table>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                        
+                                        <div class="card">
+                                          <div class="card-body">
+                                            <h6 class="card-title text-primary mb-4">Riwayat Angsuran</h6>
+                                            <div class="table-responsive">
+                                              <table class="table table-striped table-bordered">
+                                                <thead>
+                                                  <tr class="bg-light">
+                                                    <th style="width: 10%">No</th>
+                                                    <th style="width: 30%">Tanggal Bayar</th>
+                                                    <th style="width: 30%">Jumlah Bayar</th>
+                                                    <th style="width: 30%">Status</th>
+                                                  </tr>
+                                                </thead>
+                                                <tbody>
+                                                  <?php if(empty($angsuran_list)): ?>
+                                                    <tr>
+                                                      <td colspan="4" class="text-center">Belum ada data angsuran</td>
+                                                    </tr>
+                                                  <?php else: ?>
+                                                    <?php foreach($angsuran_list as $index => $angsuran): ?>
+                                                      <tr>
+                                                        <td><?php echo $index + 1; ?></td>
+                                                        <td><?php echo $angsuran['tgl_pelunasan'] ? date('d/m/Y', strtotime($angsuran['tgl_pelunasan'])) : '-'; ?></td>
+                                                        <td>Rp <?php echo number_format($angsuran['nominal'], 0, ',', '.'); ?></td>
+                                                        <td>
+                                                          <span class="badge <?php echo $angsuran['status'] == 'Lunas' ? 'badge-success' : 'badge-warning'; ?>">
+                                                            <?php echo $angsuran['status'] ?: 'Belum Lunas'; ?>
+                                                          </span>
+                                                        </td>
+                                                      </tr>
+                                                    <?php endforeach; ?>
+                                                  <?php endif; ?>
+                                                </tbody>
+                                              </table>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                          <i class="ti-close mr-2"></i>Tutup
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
                               <?php endif; ?>
                               
                               <button type="button" 
@@ -356,7 +484,7 @@
     <div class="modal-dialog modal-lg" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Data Angsuran</h5>
+          <h5 class="modal-title"><i class="ti-money mr-2"></i>Detail Angsuran Pinjaman</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
@@ -364,51 +492,71 @@
         <div class="modal-body">
           <div class="row mb-4">
             <div class="col-md-6">
-              <table class="table table-borderless">
-                <tr>
-                  <td>Total Pinjaman</td>
-                  <td>:</td>
-                  <td id="totalPinjaman"></td>
-                </tr>
-                <tr>
-                  <td>Total Angsuran</td>
-                  <td>:</td>
-                  <td id="totalAngsuran"></td>
-                </tr>
-              </table>
+              <div class="card bg-light">
+                <div class="card-body">
+                  <h6 class="card-title text-primary">Informasi Pinjaman</h6>
+                  <table class="table table-borderless table-sm mb-0">
+                    <tr>
+                      <td style="width: 45%">Total Pinjaman</td>
+                      <td style="width: 5%">:</td>
+                      <td id="totalPinjaman" style="width: 50%"></td>
+                    </tr>
+                    <tr>
+                      <td>Total Angsuran</td>
+                      <td>:</td>
+                      <td id="totalAngsuran"></td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
             </div>
             <div class="col-md-6">
-              <table class="table table-borderless">
-                <tr>
-                  <td>Sisa Angsuran</td>
-                  <td>:</td>
-                  <td id="sisaAngsuran"></td>
-                </tr>
-                <tr>
-                  <td>Status</td>
-                  <td>:</td>
-                  <td id="statusPinjaman"></td>
-                </tr>
-              </table>
+              <div class="card bg-light">
+                <div class="card-body">
+                  <h6 class="card-title text-primary">Status Pembayaran</h6>
+                  <table class="table table-borderless table-sm mb-0">
+                    <tr>
+                      <td style="width: 45%">Sisa Angsuran</td>
+                      <td style="width: 5%">:</td>
+                      <td id="sisaAngsuran" style="width: 50%"></td>
+                    </tr>
+                    <tr>
+                      <td>Status</td>
+                      <td>:</td>
+                      <td id="statusPinjaman"></td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="table-responsive">
-            <table class="table table-striped">
-              <thead>
-                <tr>
-                  <th>No</th>
-                  <th>Tanggal Bayar</th>
-                  <th>Jumlah Bayar</th>
-                  <th>Keterangan</th>
-                </tr>
-              </thead>
-              <tbody id="tableAngsuran">
-              </tbody>
-            </table>
+          <div class="card">
+            <div class="card-body">
+              <h6 class="card-title text-primary mb-4">Riwayat Angsuran</h6>
+              <div class="table-responsive">
+                <table class="table table-striped table-bordered">
+                  <thead>
+                    <tr class="bg-light">
+                      <th style="width: 10%">No</th>
+                      <th style="width: 30%">Tanggal Bayar</th>
+                      <th style="width: 30%">Jumlah Bayar</th>
+                      <th style="width: 30%">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tableAngsuran">
+                    <tr>
+                      <td colspan="4" class="text-center">Memuat data...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">
+            <i class="ti-close mr-2"></i>Tutup
+          </button>
         </div>
       </div>
     </div>
@@ -546,53 +694,9 @@
         return 'Rp ' + new Intl.NumberFormat('id-ID').format(angka);
     }
 
-    function lihatAngsuran(pinjamanId) {
-        // Ambil data pinjaman dan angsuran
-        $.ajax({
-            url: '../../proses/get_angsuran.php',
-            type: 'GET',
-            data: {
-                pinjaman_id: pinjamanId
-            },
-            dataType: 'json',
-            success: function(response) {
-                var data = response;
-                
-                // Update informasi pinjaman
-                $('#totalPinjaman').text(formatRupiah(data.pinjaman.jumlah_pinjaman));
-                $('#totalAngsuran').text(formatRupiah(data.total_angsuran));
-                $('#sisaAngsuran').text(formatRupiah(data.pinjaman.jumlah_pinjaman - data.total_angsuran));
-                
-                var statusBadge = '';
-                if (data.pinjaman.status === 'acc') {
-                    statusBadge = '<span class="badge badge-success">Aktif</span>';
-                } else if (data.pinjaman.status === 'lunas') {
-                    statusBadge = '<span class="badge badge-info">Lunas</span>';
-                }
-                $('#statusPinjaman').html(statusBadge);
-
-                // Isi tabel angsuran
-                var html = '';
-                data.angsuran.forEach(function(item, index) {
-                    html += `
-                        <tr>
-                            <td>${index + 1}</td>
-                            <td>${item.tgl_pelunasan}</td>
-                            <td>${formatRupiah(item.nominal)}</td>
-                            <td>${item.status || '-'}</td>
-                        </tr>
-                    `;
-                });
-                
-                $('#tableAngsuran').html(html);
-                
-                // Tampilkan modal
-                $('#modalAngsuran').modal('show');
-            },
-            error: function(xhr, status, error) {
-                alert('Terjadi kesalahan saat mengambil data angsuran');
-            }
-        });
+    // Fungsi untuk format rupiah di bagian lain yang mungkin membutuhkan
+    function formatRupiah(angka) {
+        return 'Rp ' + new Intl.NumberFormat('id-ID').format(angka);
     }
   </script>
 </body>
