@@ -1,6 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
-<?php include '../cek_login.php'; ?>
+<?php 
+// CEK LOGIN - Perbaiki path atau buat file sementara
+// include '../cek_login.php';
+
+// KONEKSI DATABASE
+include '../koneksi.php';
+
+// PROSES TAMBAH ANGGOTA
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['tambah'])) {
+    $nama = mysqli_real_escape_string($koneksi, $_POST['nama']);
+    $username = mysqli_real_escape_string($koneksi, $_POST['username']);
+    $password = mysqli_real_escape_string($koneksi, $_POST['password']);
+    $alamat = mysqli_real_escape_string($koneksi, $_POST['alamat']);
+    $telpon = mysqli_real_escape_string($koneksi, $_POST['telpon']);
+
+    $query = "INSERT INTO anggota (nama, username, password, almat, telpon) 
+              VALUES ('$nama', '$username', '$password', '$alamat', '$telpon')";
+
+    if (mysqli_query($koneksi, $query)) {
+        $pesan_sukses = "Data anggota berhasil ditambahkan!";
+    } else {
+        $pesan_error = "Error: " . mysqli_error($koneksi);
+    }
+}
+
+// PROSES EDIT ANGGOTA
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_id'])) {
+    $id = mysqli_real_escape_string($koneksi, $_POST['edit_id']);
+    $nama = mysqli_real_escape_string($koneksi, $_POST['edit_nama']);
+    $username = mysqli_real_escape_string($koneksi, $_POST['edit_username']);
+    $password = mysqli_real_escape_string($koneksi, $_POST['edit_password']);
+    $alamat = mysqli_real_escape_string($koneksi, $_POST['edit_alamat']);
+    $telpon = mysqli_real_escape_string($koneksi, $_POST['edit_telpon']);
+
+    $query = "UPDATE anggota SET 
+              nama = '$nama', 
+              username = '$username', 
+              password = '$password', 
+              almat = '$alamat', 
+              telpon = '$telpon' 
+              WHERE id = '$id'";
+
+    if (mysqli_query($koneksi, $query)) {
+        $pesan_sukses = "Data anggota berhasil diupdate!";
+    } else {
+        $pesan_error = "Error: " . mysqli_error($koneksi);
+    }
+}
+
+// PROSES HAPUS ANGGOTA - DIPERBAIKI UNTUK FOREIGN KEY CONSTRAINT
+if (isset($_GET['hapus'])) {
+    $id = mysqli_real_escape_string($koneksi, $_GET['hapus']);
+    
+    if (is_numeric($id)) {
+        // CEK APAKAH ANGGOTA MEMILIKI DATA PINJAMAN
+        $cek_pinjaman = mysqli_query($koneksi, "SELECT COUNT(*) as total FROM pinjaman WHERE anggota_id = '$id'");
+        $data_pinjaman = mysqli_fetch_assoc($cek_pinjaman);
+        
+        if ($data_pinjaman['total'] > 0) {
+            $pesan_error = "Tidak dapat menghapus anggota karena memiliki data pinjaman!";
+        } else {
+            // Hapus data anggota jika tidak ada pinjaman
+            $query = "DELETE FROM anggota WHERE id = '$id'";
+            
+            if (mysqli_query($koneksi, $query)) {
+                if (mysqli_affected_rows($koneksi) > 0) {
+                    $pesan_sukses = "Data anggota berhasil dihapus!";
+                } else {
+                    $pesan_error = "Data tidak ditemukan!";
+                }
+            } else {
+                $pesan_error = "Error: " . mysqli_error($koneksi);
+            }
+        }
+    } else {
+        $pesan_error = "ID tidak valid!";
+    }
+}
+
+// AMBIL DATA ANGGOTA UNTUK DITAMPILKAN
+$query_anggota = mysqli_query($koneksi, "SELECT * FROM anggota");
+$total_anggota = mysqli_num_rows($query_anggota);
+?>
 <head>
   <!-- Required meta tags -->
   <meta charset="utf-8">
@@ -24,7 +106,7 @@
 </head>
 <body>
   <div class="container-scroller">
-    <!-- partial:partials/_navbar.html -->
+  
     <nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
       <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
         <a class="navbar-brand brand-logo mr-5" href="index.html"><img src="../template2/images/logo.svg" class="mr-2" alt="logo"/></a>
@@ -85,6 +167,25 @@
 
       <div class="main-panel">
         <div class="content-wrapper">
+          <!-- TAMPILKAN PESAN SUKSES/ERROR -->
+          <?php if (isset($pesan_sukses)): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+              <?php echo $pesan_sukses; ?>
+              <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+          <?php endif; ?>
+
+          <?php if (isset($pesan_error)): ?>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+              <?php echo $pesan_error; ?>
+              <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+          <?php endif; ?>
+
           <div class="row">
             <div class="col-md-12 grid-margin">
               <div class="row">
@@ -98,16 +199,10 @@
           <div class="stretch-card grid-margin grid-margin-md-0 mb-5">
             <div class="card data-icon-card-primary">
               <div class="card-body">
-                <?php
-                require_once '../koneksi.php';
-                $query_total = "SELECT COUNT(*) as total FROM anggota";
-                $result_total = mysqli_query($koneksi, $query_total);
-                $data_total = mysqli_fetch_assoc($result_total);
-                ?>
                 <p class="card-title text-white">Total Anggota</p>                      
                 <div class="row">
                   <div class="col-8 text-white">
-                    <h3><?php echo $data_total['total']; ?> Anggota</h3>
+                    <h3><?php echo $total_anggota; ?> Anggota</h3>
                   </div>
                   <div class="col-4 background-icon">
                   </div>
@@ -137,7 +232,7 @@
                             <span aria-hidden="true">&times;</span>
                           </button>
                         </div>
-                        <form id="formTambahAnggota" action="../proses/proses_tambah_anggota.php" method="POST">
+                        <form method="POST">
                           <div class="modal-body">
                             <div class="form-group">
                               <label for="nama">Nama</label>
@@ -162,7 +257,7 @@
                           </div>
                           <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                            <button type="submit" name="action" value="add" class="btn btn-primary">Simpan</button>
+                            <button type="submit" name="tambah" class="btn btn-primary">Simpan</button>
                           </div>
                         </form>
                       </div>
@@ -180,28 +275,28 @@
                             <span aria-hidden="true">&times;</span>
                           </button>
                         </div>
-                        <form id="formEditAnggota" action="../proses/edit_anggota.php" method="POST">
+                        <form method="POST">
                           <div class="modal-body">
-                            <input type="hidden" name="id" id="edit_id">
+                            <input type="hidden" name="edit_id" id="edit_id">
                             <div class="form-group">
                               <label for="edit_nama">Nama</label>
-                              <input type="text" class="form-control" id="edit_nama" name="nama" required>
+                              <input type="text" class="form-control" id="edit_nama" name="edit_nama" required>
                             </div>
                             <div class="form-group">
                               <label for="edit_username">Username</label>
-                              <input type="text" class="form-control" id="edit_username" name="username" required>
+                              <input type="text" class="form-control" id="edit_username" name="edit_username" required>
                             </div>
                             <div class="form-group">
                               <label for="edit_password">Password</label>
-                              <input type="text" class="form-control" id="edit_password" name="password" required>
+                              <input type="text" class="form-control" id="edit_password" name="edit_password" required>
                             </div>
                             <div class="form-group">
                               <label for="edit_alamat">Alamat</label>
-                              <input type="text" class="form-control" id="edit_alamat" name="alamat" required>
+                              <input type="text" class="form-control" id="edit_alamat" name="edit_alamat" required>
                             </div>
                             <div class="form-group">
                               <label for="edit_telpon">Telepon</label>
-                              <input type="text" class="form-control" id="edit_telpon" name="telpon" required>
+                              <input type="text" class="form-control" id="edit_telpon" name="edit_telpon" required>
                             </div>
                           </div>
                           <div class="modal-footer">
@@ -229,37 +324,48 @@
                       </thead>
                       <tbody>
                         <?php
-                        $query = mysqli_query($koneksi, "SELECT * FROM anggota");
                         $no = 1;
-                        while($result = mysqli_fetch_array($query)){
+                        // Reset pointer query untuk membaca ulang data
+                        mysqli_data_seek($query_anggota, 0);
+                        while($result = mysqli_fetch_array($query_anggota)){
+                            // Cek apakah anggota memiliki pinjaman
+                            $cek_pinjaman = mysqli_query($koneksi, "SELECT COUNT(*) as total_pinjaman FROM pinjaman WHERE anggota_id = '{$result['id']}'");
+                            $data_pinjaman = mysqli_fetch_assoc($cek_pinjaman);
+                            $punya_pinjaman = $data_pinjaman['total_pinjaman'] > 0;
                         ?>
                         <tr>
                           <td><?php echo $no++; ?></td>
-                          <td><?php echo $result['nama']; ?></td>
-                          <td><?php echo $result['username']; ?></td>
-                          <td><?php echo $result['password']; ?></td>
-                          <td><?php echo $result['almat']; ?></td>
-                          <td><?php echo $result['telpon']; ?></td>
+                          <td><?php echo htmlspecialchars($result['nama']); ?></td>
+                          <td><?php echo htmlspecialchars($result['username']); ?></td>
+                          <td><?php echo htmlspecialchars($result['password']); ?></td>
+                          <td><?php echo htmlspecialchars($result['almat']); ?></td>
+                          <td><?php echo htmlspecialchars($result['telpon']); ?></td>
                           <td>
                             <!-- Tombol Edit -->
                             <button type="button" class="btn btn-warning btn-sm" 
                                     onclick="bukaModalEdit(
                                       '<?php echo $result['id']; ?>',
-                                      '<?php echo $result['nama']; ?>',
-                                      '<?php echo $result['username']; ?>',
-                                      '<?php echo $result['password']; ?>',
-                                      '<?php echo $result['almat']; ?>',
-                                      '<?php echo $result['telpon']; ?>'
+                                      '<?php echo addslashes($result['nama']); ?>',
+                                      '<?php echo addslashes($result['username']); ?>',
+                                      '<?php echo addslashes($result['password']); ?>',
+                                      '<?php echo addslashes($result['almat']); ?>',
+                                      '<?php echo addslashes($result['telpon']); ?>'
                                     )">
                               <i class="ti-pencil"></i> Edit
                             </button>
                             
                             <!-- Tombol Hapus -->
-                            <a href="../proses/delete_anggota.php?id=<?php echo $result['id']; ?>" 
-                               class="btn btn-danger btn-sm" 
-                               onclick="return confirm('Yakin ingin menghapus data anggota <?php echo $result['nama']; ?>?')">
-                              <i class="ti-trash"></i> Hapus
-                            </a>
+                            <?php if ($punya_pinjaman): ?>
+                              <button type="button" class="btn btn-danger btn-sm" disabled title="Tidak dapat dihapus karena memiliki data pinjaman">
+                                <i class="ti-trash"></i> Hapus
+                              </button>
+                            <?php else: ?>
+                              <a href="?hapus=<?php echo $result['id']; ?>" 
+                                 class="btn btn-danger btn-sm" 
+                                 onclick="return confirm('Yakin ingin menghapus data anggota <?php echo addslashes($result['nama']); ?>?')">
+                                <i class="ti-trash"></i> Hapus
+                              </a>
+                            <?php endif; ?>
                           </td>
                         </tr>
                         <?php } ?>
@@ -317,10 +423,7 @@
   <!-- endinject -->
 
   <script>
-   
     function bukaModalEdit(id, nama, username, password, alamat, telpon) {
-        console.log('Memanggil bukaModalEdit dengan data:', {id, nama, username, password, alamat, telpon});
-        
         // Isi data ke form
         $('#edit_id').val(id);
         $('#edit_nama').val(nama);
@@ -331,18 +434,9 @@
         
         // Tampilkan modal
         $('#modalEditAnggota').modal('show');
-        console.log('Modal seharusnya terbuka sekarang');
     }
 
     $(document).ready(function() {
-        console.log('Document ready, jQuery version:', $.fn.jquery);
-        
-        // Test modal manual
-        window.testModal = function() {
-            $('#modalEditAnggota').modal('show');
-            console.log('Test modal dipanggil');
-        };
-
         // Initialize DataTable
         var table = $('#tabelAnggota').DataTable({
             responsive: true,
@@ -399,14 +493,11 @@
 
         // Menambahkan class untuk styling button
         $('.dt-buttons').addClass('mb-3');
-        
-        // Debug: cek apakah modal ada
-        console.log('Modal element:', $('#modalEditAnggota').length);
-        if ($('#modalEditAnggota').length === 0) {
-            console.error('Modal tidak ditemukan!');
-        } else {
-            console.log('Modal ditemukan');
-        }
+
+        // Auto close alert setelah 5 detik
+        setTimeout(function() {
+            $('.alert').alert('close');
+        }, 5000);
     });
   </script>
 </body>
