@@ -1,0 +1,202 @@
+═══════════════════════════════════════════════════════════════════════════════════
+         🎨 BONUS: ENHANCED CONFIRMATION DENGAN SWEETALERT
+             (Jika ingin tampilan lebih professional/impressive)
+═══════════════════════════════════════════════════════════════════════════════════
+
+⏰ TIME ESTIMATE: 30 menit (OPTIONAL, hanya jika ada extra time)
+
+🎯 BENEFIT:
+✓ Confirmation dialog lebih cantik & professional
+✓ Ada delay button untuk mencegah click accident
+✓ Animasi smooth dan warna menarik
+✓ Terlihat "premium" dalam presentasi
+
+═══════════════════════════════════════════════════════════════════════════════════
+📝 STEP 1: ADD SWEETALERT CDN (5 menit)
+═════════════════════════════════════════════════════════════════════════════════
+
+FILE: admin/anggota.php
+FIND: Di bagian <head> atau sebelum </head>
+
+TAMBAHKAN:
+<!-- SweetAlert2 CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+FILE: Di bagian akhir sebelum </body>
+TAMBAHKAN:
+<!-- SweetAlert2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+LAKUKAN SAMA UNTUK:
+- admin/pinjaman/pinjaman.php
+
+═════════════════════════════════════════════════════════════════════════════════════
+📝 STEP 2: UPDATE admin/anggota.php DELETE BUTTON (10 menit)
+═════════════════════════════════════════════════════════════════════════════════════
+
+FIND:
+<?php else: ?>
+  <a href="?hapus=<?php echo $result['id']; ?>" 
+     class="btn btn-danger btn-sm" 
+     onclick="return confirm('⚠️ PERHATIAN!\\n\\nApakah Anda yakin ingin MENGHAPUS anggota ini?\\n\\nNama: <?php echo addslashes($result['nama']); ?>\\n\\nSemua data simpanan akan ikut terhapus!\\n\\nTindakan ini TIDAK BISA dibatalkan!')">
+    <i class="ti-trash"></i> Hapus
+  </a>
+<?php endif; ?>
+
+REPLACE DENGAN:
+<?php else: ?>
+  <button type="button" 
+          class="btn btn-danger btn-sm"
+          onclick="confirmDeleteAnggota(<?php echo $result['id']; ?>, '<?php echo addslashes($result['nama']); ?>')">
+    <i class="ti-trash"></i> Hapus
+  </button>
+<?php endif; ?>
+
+KEMUDIAN TAMBAHKAN SCRIPT (sebelum </body>):
+<script>
+function confirmDeleteAnggota(id, nama) {
+    Swal.fire({
+        title: '⚠️ Perhatian!',
+        html: `<div style="text-align: left;">
+                  <p style="margin: 10px 0;"><strong>Apakah Anda yakin ingin MENGHAPUS anggota ini?</strong></p>
+                  <p style="margin: 10px 0; color: #666;">Nama: <strong>${nama}</strong></p>
+                  <p style="margin: 10px 0; color: #e74c3c;"><strong>⚠️ Semua data simpanan akan ikut terhapus!</strong></p>
+                  <p style="margin: 10px 0; color: #c0392b;"><strong>❌ Tindakan ini TIDAK BISA dibatalkan!</strong></p>
+               </div>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#e74c3c',
+        cancelButtonColor: '#95a5a6',
+        confirmButtonText: 'Ya, Hapus Anggota!',
+        cancelButtonText: 'Batal',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        confirmButtonAriaLabel: 'Konfirmasi hapus',
+        cancelButtonAriaLabel: 'Batalkan'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = '?hapus=' + id;
+        }
+    });
+}
+</script>
+
+═════════════════════════════════════════════════════════════════════════════════════
+📝 STEP 3: UPDATE admin/pinjaman/pinjaman.php TOLAK BUTTON (10 menit)
+═════════════════════════════════════════════════════════════════════════════════════
+
+FIND:
+<a href="javascript:void(0);" 
+   onclick="if(confirm('⚠️ PERHATIAN!\\n\\nApakah Anda yakin ingin MENOLAK pinjaman ini?\\n\\nPeminjam: <?php echo addslashes($row['nama']); ?>\\nJumlah: Rp ' + new Intl.NumberFormat('id-ID').format(<?php echo $row['jumlah_pinjaman']; ?>)  + '\\n\\nSemua data angsuran akan ikut terhapus!\\n\\nTindakan ini TIDAK BISA dibatalkan!')) window.location.href='../../proses/hapus_pinjaman.php?pinjaman_id=<?php echo $row['id_pinjaman']; ?>'"
+   class="btn btn-danger btn-sm" title="Tolak Pinjaman">
+  <i class="ti-close"></i>
+</a>
+
+REPLACE DENGAN:
+<button type="button" 
+        class="btn btn-danger btn-sm"
+        onclick="confirmTolakPinjaman(<?php echo $row['id_pinjaman']; ?>, '<?php echo addslashes($row['nama']); ?>', <?php echo $row['jumlah_pinjaman']; ?>)"
+        title="Tolak Pinjaman">
+  <i class="ti-close"></i>
+</button>
+
+KEMUDIAN TAMBAHKAN SCRIPT (sebelum </body>):
+<script>
+function confirmTolakPinjaman(peminjamanId, nama, jumlah) {
+    Swal.fire({
+        title: '⚠️ Perhatian!',
+        html: `<div style="text-align: left;">
+                  <p style="margin: 10px 0;"><strong>Apakah Anda yakin ingin MENOLAK pinjaman ini?</strong></p>
+                  <p style="margin: 10px 0; color: #666;"><strong>Peminjam:</strong> ${nama}</p>
+                  <p style="margin: 10px 0; color: #666;"><strong>Jumlah:</strong> Rp ${new Intl.NumberFormat('id-ID').format(jumlah)}</p>
+                  <p style="margin: 10px 0; color: #e74c3c;"><strong>⚠️ Semua data angsuran akan ikut terhapus!</strong></p>
+                  <p style="margin: 10px 0; color: #c0392b;"><strong>❌ Tindakan ini TIDAK BISA dibatalkan!</strong></p>
+               </div>`,
+        icon: 'error',
+        showCancelButton: true,
+        confirmButtonColor: '#e74c3c',
+        cancelButtonColor: '#95a5a6',
+        confirmButtonText: 'Ya, Tolak & Hapus!',
+        cancelButtonText: 'Batal',
+        allowOutsideClick: false,
+        allowEscapeKey: false
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = '../../proses/hapus_pinjaman.php?pinjaman_id=' + peminjamanId;
+        }
+    });
+}
+</script>
+
+═════════════════════════════════════════════════════════════════════════════════════
+🎨 COMPARISON: STANDARD VS SWEETALERT
+═════════════════════════════════════════════════════════════════════════════════════
+
+STANDARD confirm():
+- Tampilan plain & tidak cantik
+- Hanya ada text, tidak bisa format HTML
+- Sulit dibaca untuk pesan panjang
+- Terlihat "basic" / "amateur"
+
+SWEETALERT:
+- Tampilan modern & professional
+- Bisa format HTML dengan warna & styling
+- Mudah dibaca
+- Animasi smooth
+- Button text bisa customize
+- Terlihat "premium" dan "polished"
+
+═════════════════════════════════════════════════════════════════════════════════════
+✅ TESTING
+═════════════════════════════════════════════════════════════════════════════════════
+
+1. Go to admin/anggota.php
+2. Scroll to anggota yang tidak punya pinjaman
+3. Click tombol Hapus
+4. SweetAlert dialog muncul dengan info lengkap
+5. Click "Batal" - harus kembali ke halaman (tidak delete)
+6. Click "Ya, Hapus Anggota!" - harus delete & redirect
+
+LAKUKAN SAMA UNTUK:
+- admin/pinjaman/pinjaman.php - Tolak button
+
+═════════════════════════════════════════════════════════════════════════════════════
+💡 PRO TIPS
+═════════════════════════════════════════════════════════════════════════════════════
+
+1. WARNA PSYCHOLOGY:
+   - confirmButtonColor: '#e74c3c' = Red (danger, urgent)
+   - cancelButtonColor: '#95a5a6' = Gray (neutral, safe)
+   - icon: 'warning' / 'error' / 'success'
+
+2. PREVENT ACCIDENT CLICKS:
+   - allowOutsideClick: false (user harus pilih button)
+   - allowEscapeKey: false (tidak bisa ESC)
+   - Fokus pada confirmButtonText (jangan "OK", lebih spesifik)
+
+3. ACCESSIBILITY:
+   - confirmButtonAriaLabel & cancelButtonAriaLabel untuk screen readers
+   - HTML content dibaca dengan benar
+
+4. CUSTOMIZATION:
+   - Bisa tambah timer countdown
+   - Bisa tambah toast notification
+   - Bisa chain multiple alerts
+
+═════════════════════════════════════════════════════════════════════════════════════
+🚀 QUICK CHECKLIST
+═════════════════════════════════════════════════════════════════════════════════════
+
+JIKA PUNYA WAKTU LEBIH & INGIN LEBIH IMPRESSIVE:
+
+[ ] Add SweetAlert CDN to both files
+[ ] Update delete button di anggota.php dengan function
+[ ] Update tolak button di pinjaman.php dengan function
+[ ] Add script functions untuk both
+[ ] Test both confirmation dialogs
+[ ] Customize warna & text sesuai brand
+
+ESTIMATED TIME: 30 menit
+IMPACT: HIGH - Terlihat sangat professional!
+
+═════════════════════════════════════════════════════════════════════════════════════

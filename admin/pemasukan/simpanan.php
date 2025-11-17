@@ -88,6 +88,28 @@
     <!-- partial -->
       <div class="main-panel">
         <div class="content-wrapper">
+          <?php
+          // Tampilkan notifikasi jika ada
+          if(isset($_SESSION['success'])) {
+            echo '<div class="alert alert-success alert-dismissible fade show" role="alert">
+              <i class="ti-check mr-2"></i>' . $_SESSION['success'] . '
+              <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>';
+            unset($_SESSION['success']);
+          }
+          
+          if(isset($_SESSION['error'])) {
+            echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">
+              <i class="ti-alert mr-2"></i>' . $_SESSION['error'] . '
+              <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>';
+            unset($_SESSION['error']);
+          }
+          ?>
           <div class="row">
             <div class="col-md-12 grid-margin">
               <div class="row">
@@ -273,47 +295,44 @@
                         <tr>
                           <th>No</th>
                           <th>Anggota</th>
-                          <th>Simpanan</th>
-                          <th>Nominal</th>
+                          <th>Simpanan Wajib</th>
+                          <th>Simpanan Pokok</th>
+                          <th>Simpanan Sukarela</th>
+                          <th>Total</th>
                           <th>Tanggal</th>
-
-                        </tr>  
+                        </tr>
                       </thead>
                       <tbody>
                         <?php
-                            $query =mysqli_query($koneksi, "SELECT
-                                simpanan.*,
-                                anggota.nama AS nama_anggota,
-                                jenissimpanan.nama AS nama_simpanan
-                            FROM simpanan
-                            LEFT JOIN anggota
-                                ON simpanan.anggota_id = anggota.id
-                            LEFT JOIN jenissimpanan
-                                ON simpanan.jenissimpanan_id = jenissimpanan.id
-                                ") ;
-                            
-                        while($result = mysqli_fetch_array($query)){
+                            // Versi B: ringkasan per anggota
+                            // SUM per jenis simpanan dan tanggal terakhir (last_date)
+                            $sql = "SELECT a.id AS anggota_id, a.nama AS nama_anggota,
+                                            SUM(CASE WHEN s.jenissimpanan_id = 2 THEN s.nominal ELSE 0 END) AS total_wajib,
+                                            SUM(CASE WHEN s.jenissimpanan_id = 1 THEN s.nominal ELSE 0 END) AS total_pokok,
+                                            SUM(CASE WHEN s.jenissimpanan_id = 3 THEN s.nominal ELSE 0 END) AS total_sukarela,
+                                            MAX(NULLIF(s.tanggal, '0000-00-00')) AS last_date
+                                     FROM anggota a
+                                     LEFT JOIN simpanan s ON s.anggota_id = a.id
+                                     GROUP BY a.id, a.nama
+                                     ORDER BY a.nama ASC";
 
-                        
-                        $no = 1;
-                        
-                          
+                            $query = mysqli_query($koneksi, $sql);
+                            $no = 1;
+                            while($row = mysqli_fetch_assoc($query)) {
                         ?>
                         <tr>
                           <td><?php echo $no++; ?></td>
                           <td>
-                            <div style="font-weight: bold;"><?php echo $result['nama_anggota']; ?></div>
-                            <small class="text-muted">ID: <?php echo $result['id']; ?></small>
+                            <div style="font-weight: bold;"><?php echo $row['nama_anggota']; ?></div>
+                            <small class="text-muted">ID: <?php echo $row['anggota_id']; ?></small>
                           </td>
-                          <td>
-                            <div style="font-weight: bold;"><?php echo $result['nama_simpanan']; ?></div>
-                          </td>
-                          <td data-sort="<?php echo $result['nominal']; ?>">
-                            Rp <?php echo number_format($result['nominal'], 0, ',', '.'); ?>
-                          </td>                          
-                          <td data-sort="<?php echo strtotime($result['tanggal']); ?>">
-                            <?php echo date('d/m/Y', strtotime($result['tanggal'])); ?>
-                          </td>
+                          <td data-sort="<?php echo $row['total_wajib']; ?>"><?php echo $row['total_wajib'] ? 'Rp '.number_format($row['total_wajib'], 0, ',', '.') : '-'; ?></td>
+                          <td data-sort="<?php echo $row['total_pokok']; ?>"><?php echo $row['total_pokok'] ? 'Rp '.number_format($row['total_pokok'], 0, ',', '.') : '-'; ?></td>
+                          <td data-sort="<?php echo $row['total_sukarela']; ?>"><?php echo $row['total_sukarela'] ? 'Rp '.number_format($row['total_sukarela'], 0, ',', '.') : '-'; ?></td>
+                          <?php $total_all = (int)$row['total_wajib'] + (int)$row['total_pokok'] + (int)$row['total_sukarela']; ?>
+                          <td data-sort="<?php echo $total_all; ?>"><?php echo $total_all ? 'Rp '.number_format($total_all, 0, ',', '.') : '-'; ?></td>
+                          <?php $last_date = (!empty($row['last_date']) && $row['last_date'] != '0000-00-00') ? $row['last_date'] : null; ?>
+                          <td data-sort="<?php echo $last_date ? strtotime($last_date) : 0; ?>"><?php echo $last_date ? date('d/m/Y', strtotime($last_date)) : '-'; ?></td>
                         </tr>
                         <?php } ?>
                       </tbody>
@@ -401,43 +420,74 @@
         var today = new Date().toISOString().split('T')[0];
         $('input[name="tanggal"]').val(today);
 
-        // Initialize DataTable
+    // helper to strip HTML and normalize whitespace for exports
+    function stripHtml(data) {
+      if (typeof data !== 'string') return data;
+      // remove small(...) first, then all tags, then decode basic entities and trim
+      var withoutSmall = data.replace(/<small[^>]*>.*?<\/small>/ig, '');
+      var noTags = withoutSmall.replace(/<[^>]*>/g, '');
+      // replace multiple whitespace/newlines with single space
+      var collapsed = noTags.replace(/\s+/g, ' ').trim();
+      return collapsed;
+    }
+
+    // Initialize DataTable
         var table = $('#tabelSimpanan').DataTable({
             responsive: true,
             dom: 'Blfrtip',
             lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
             buttons: [
-                        {
-                            extend: 'copy',
-                            text: '<i class="ti-clipboard"></i> Copy',
-                            className: 'btn btn-info btn-sm mb-5',
-                            exportOptions: {
-                                columns: [0, 1, 2, 3, 4]
-                            }
-                        },
+            {
+              extend: 'copy',
+              text: '<i class="ti-clipboard"></i> Copy',
+              className: 'btn btn-info btn-sm mb-5',
+              exportOptions: {
+                columns: [0, 1, 2, 3, 4, 5, 6],
+                format: {
+                  body: function(data, row, column, node) {
+                    return stripHtml(data);
+                  }
+                }
+              }
+            },
                         {
                             extend: 'excel',
                             text: '<i class="ti-file"></i> Excel',
                             className: 'btn btn-success btn-sm mb-5',
-                            exportOptions: {
-                                columns: [0, 1, 2, 3, 4]
-                            }
+              exportOptions: {
+                columns: [0, 1, 2, 3, 4, 5, 6],
+                format: {
+                  body: function(data, row, column, node) {
+                    return stripHtml(data);
+                  }
+                }
+              }
                         },
                         {
                             extend: 'pdf',
                             text: '<i class="ti-file"></i> PDF',
                             className: 'btn btn-danger btn-sm mb-5',
-                            exportOptions: {
-                                columns: [0, 1, 2, 3, 4]
-                            }
+              exportOptions: {
+                columns: [0, 1, 2, 3, 4, 5, 6],
+                format: {
+                  body: function(data, row, column, node) {
+                    return stripHtml(data);
+                  }
+                }
+              }
                         },
                         {
                             extend: 'print',
                             text: '<i class="ti-printer"></i> Print',
                             className: 'btn btn-dark btn-sm mb-5',
-                            exportOptions: {
-                                columns: [0, 1, 2, 3, 4]
-                            }
+              exportOptions: {
+                columns: [0, 1, 2, 3, 4, 5, 6],
+                format: {
+                  body: function(data, row, column, node) {
+                    return stripHtml(data);
+                  }
+                }
+              }
                         }
                     
                 
@@ -456,31 +506,22 @@
                     previous: "Sebelumnya"
                 }
             },
-            order: [[4, "desc"]], // Urutkan berdasarkan tanggal secara descending
-            columnDefs: [
-                {
-                    targets: 0, // kolom nomor
-                    orderable: false
-                },
-                {
-                    targets: 3, // kolom nominal
-                    render: function(data, type, row) {
-                        if (type === 'display' || type === 'filter') {
-                            return data;
-                        }
-                        return data.replace(/[^\d]/g, '');
-                    }
-                },
-                {
-                    targets: 4, // kolom tanggal
-                    render: function(data, type, row) {
-                        if (type === 'sort') {
-                            return row[4].split('data-sort="')[1].split('"')[0];
-                        }
-                        return data;
-                    }
-                }
-            ]
+      order: [[6, "desc"]], // Urutkan berdasarkan tanggal secara descending
+      columnDefs: [
+        {
+          targets: 0, // kolom nomor
+          orderable: false
+        },
+        {
+          targets: 6, // kolom tanggal
+          render: function(data, type, row) {
+            if (type === 'sort') {
+              return row[6];
+            }
+            return data;
+          }
+        }
+      ]
         });
 
         // Menambahkan class untuk styling button

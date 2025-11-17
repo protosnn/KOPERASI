@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>KSP</title>
+  <title>Koperasi - Login</title>
   <link rel="shortcut icon" type="image/png" href="./template/assets/images/logos/favicon.svg" />
   <link rel="stylesheet" href="./template/assets/libs/owl.carousel/dist/assets/owl.carousel.min.css">
   <link rel="stylesheet" href="./template/assets/libs/aos-master/dist/aos.css">
