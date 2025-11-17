@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
- <?php include 'cek_login.php'; ?>
+<?php include 'cek_login.php'; ?>
 <head>
   <!-- Required meta tags -->
   <meta charset="utf-8">
@@ -80,12 +80,10 @@
       <!-- partial:setting_pannel -->
 
       <!-- sidebar -->
-       <?php
-      include '../layout/sidebar.php';
-      ?>
+      <?php include '../layout/sidebar.php'; ?>
       <!-- sidebar -->
 
-    <!-- partial -->
+      <!-- partial -->
       <div class="main-panel">
         <div class="content-wrapper">
           <div class="row">
@@ -97,233 +95,365 @@
               </div>
             </div>
           </div>
-            <div class="stretch-card grid-margin grid-margin-md-0 mb-5">
+          
+          <div class="stretch-card grid-margin grid-margin-md-0 mb-5">
             <div class="card data-icon-card-primary">
               <div class="card-body">
                 <?php
                 require_once '../koneksi.php';
-                $query_total = "SELECT COUNT(*) as total, SUM(nominal) as total_saldo FROM simpanan";
-                $result_total = mysqli_query($koneksi, $query_total);
-                $data_total = mysqli_fetch_assoc($result_total);
+                
+                // Initialize all variables with default values
+                $jumlah_simpanan_pokok = ['total' => 0];
+                $jumlah_simpanan_wajib = ['total' => 0];
+                $jumlah_simpanan_sukarela = ['total' => 0];
+                $jumlah_simpanan = ['total' => 0];
+                $jumlah_pinjaman_acc = ['total' => 0];
+                $jumlah_angsuran_lunas = ['total' => 0];
+                $jumlah_bunga_lunas = ['total' => 0];
+                $saldo_akhir = 0;
+
+                try {
+                    // First, let's check what tables and columns actually exist
+                    $tables_result = mysqli_query($koneksi, "SHOW TABLES");
+                    $tables = [];
+                    while ($row = mysqli_fetch_array($tables_result)) {
+                        $tables[] = $row[0];
+                    }
+
+                    // APPROACH 1: Check if separate tables exist for each simpanan type
+                    if (in_array('simpanan_pokok', $tables)) {
+                        // If separate tables exist for each type
+                        $query_simpanan_pokok = "SELECT SUM(nominal) as total FROM simpanan_pokok";
+                        $query_simpanan_wajib = "SELECT SUM(nominal) as total FROM simpanan_wajib";
+                        $query_simpanan_sukarela = "SELECT SUM(nominal) as total FROM simpanan_sukarela";
+                    } 
+                    // APPROACH 2: Check if simpanan table exists and has type columns
+                    else if (in_array('simpanan', $tables)) {
+                        // Check columns in simpanan table
+                        $columns_result = mysqli_query($koneksi, "SHOW COLUMNS FROM simpanan");
+                        $columns = [];
+                        while ($row = mysqli_fetch_assoc($columns_result)) {
+                            $columns[] = $row['Field'];
+                        }
+                        
+                        // If simpanan table has separate columns for each type
+                        if (in_array('simpanan_pokok', $columns)) {
+                            $query_simpanan_pokok = "SELECT SUM(simpanan_pokok) as total FROM simpanan";
+                            $query_simpanan_wajib = "SELECT SUM(simpanan_wajib) as total FROM simpanan";
+                            $query_simpanan_sukarela = "SELECT SUM(simpanan_sukarela) as total FROM simpanan";
+                        }
+                        // If simpanan table has a type column
+                        else if (in_array('jenis', $columns)) {
+                            $query_simpanan_pokok = "SELECT SUM(nominal) as total FROM simpanan WHERE jenis = 'Pokok' OR jenis = 'pokok'";
+                            $query_simpanan_wajib = "SELECT SUM(nominal) as total FROM simpanan WHERE jenis = 'Wajib' OR jenis = 'wajib'";
+                            $query_simpanan_sukarela = "SELECT SUM(nominal) as total FROM simpanan WHERE jenis = 'Sukarela' OR jenis = 'sukarela' OR jenis = 'Sukarela'";
+                        }
+                        else if (in_array('type', $columns)) {
+                            $query_simpanan_pokok = "SELECT SUM(nominal) as total FROM simpanan WHERE type = 'Pokok' OR type = 'pokok'";
+                            $query_simpanan_wajib = "SELECT SUM(nominal) as total FROM simpanan WHERE type = 'Wajib' OR type = 'wajib'";
+                            $query_simpanan_sukarela = "SELECT SUM(nominal) as total FROM simpanan WHERE type = 'Sukarela' OR type = 'sukarela' OR type = 'Sukarela'";
+                        }
+                        // Fallback: just get total from simpanan table
+                        else {
+                            $query_simpanan_pokok = "SELECT SUM(nominal) as total FROM simpanan";
+                            $query_simpanan_wajib = "SELECT 0 as total";
+                            $query_simpanan_sukarela = "SELECT 0 as total";
+                        }
+                    }
+                    // APPROACH 3: No simpanan tables found
+                    else {
+                        $query_simpanan_pokok = "SELECT 0 as total";
+                        $query_simpanan_wajib = "SELECT 0 as total";
+                        $query_simpanan_sukarela = "SELECT 0 as total";
+                    }
+
+                    // Execute simpanan queries
+                    $result_simpanan_pokok = mysqli_query($koneksi, $query_simpanan_pokok);
+                    if($result_simpanan_pokok && mysqli_num_rows($result_simpanan_pokok) > 0) {
+                        $jumlah_simpanan_pokok = mysqli_fetch_assoc($result_simpanan_pokok);
+                    }
+
+                    $result_simpanan_wajib = mysqli_query($koneksi, $query_simpanan_wajib);
+                    if($result_simpanan_wajib && mysqli_num_rows($result_simpanan_wajib) > 0) {
+                        $jumlah_simpanan_wajib = mysqli_fetch_assoc($result_simpanan_wajib);
+                    }
+
+                    $result_simpanan_sukarela = mysqli_query($koneksi, $query_simpanan_sukarela);
+                    if($result_simpanan_sukarela && mysqli_num_rows($result_simpanan_sukarela) > 0) {
+                        $jumlah_simpanan_sukarela = mysqli_fetch_assoc($result_simpanan_sukarela);
+                    }
+
+                    // Query for Total Simpanan (sum of all types)
+                    $total_simpanan = ($jumlah_simpanan_pokok['total'] ?? 0) + ($jumlah_simpanan_wajib['total'] ?? 0) + ($jumlah_simpanan_sukarela['total'] ?? 0);
+                    $jumlah_simpanan = ['total' => $total_simpanan];
+
+                    // Query for Pinjaman ACC
+                    if (in_array('pinjaman', $tables)) {
+                        $pinjaman_columns_result = mysqli_query($koneksi, "SHOW COLUMNS FROM pinjaman");
+                        $pinjaman_columns = [];
+                        while ($row = mysqli_fetch_assoc($pinjaman_columns_result)) {
+                            $pinjaman_columns[] = $row['Field'];
+                        }
+                        
+                        if (in_array('status', $pinjaman_columns)) {
+                            $query_pinjaman_acc = "SELECT SUM(jumlah_pinjaman) as total FROM pinjaman WHERE status = 'ACC' OR status = 'acc' OR status = 'Acc'";
+                        } else if (in_array('status_pinjaman', $pinjaman_columns)) {
+                            $query_pinjaman_acc = "SELECT SUM(jumlah_pinjaman) as total FROM pinjaman WHERE status_pinjaman = 'ACC' OR status_pinjaman = 'acc' OR status_pinjaman = 'Acc'";
+                        } else {
+                            $query_pinjaman_acc = "SELECT SUM(jumlah_pinjaman) as total FROM pinjaman";
+                        }
+                        
+                        $result_pinjaman_acc = mysqli_query($koneksi, $query_pinjaman_acc);
+                        if($result_pinjaman_acc && mysqli_num_rows($result_pinjaman_acc) > 0) {
+                            $jumlah_pinjaman_acc = mysqli_fetch_assoc($result_pinjaman_acc);
+                        }
+                    }
+
+                    // Query for Angsuran Lunas
+                    if (in_array('angsuran', $tables)) {
+                        $angsuran_columns_result = mysqli_query($koneksi, "SHOW COLUMNS FROM angsuran");
+                        $angsuran_columns = [];
+                        while ($row = mysqli_fetch_assoc($angsuran_columns_result)) {
+                            $angsuran_columns[] = $row['Field'];
+                        }
+                        
+                        // Cek kolom yang tersedia untuk jumlah angsuran
+                        $angsuran_amount_column = 'jumlah_angsuran'; // default
+                        if (in_array('jumlah_bayar', $angsuran_columns)) {
+                            $angsuran_amount_column = 'jumlah_bayar';
+                        } else if (in_array('nominal', $angsuran_columns)) {
+                            $angsuran_amount_column = 'nominal';
+                        } else if (in_array('besar_angsuran', $angsuran_columns)) {
+                            $angsuran_amount_column = 'besar_angsuran';
+                        }
+                        
+                        if (in_array('status', $angsuran_columns)) {
+                            $query_angsuran_lunas = "SELECT SUM($angsuran_amount_column) as total FROM angsuran WHERE status = 'lunas' OR status = 'Lunas'";
+                        } else if (in_array('status_angsuran', $angsuran_columns)) {
+                            $query_angsuran_lunas = "SELECT SUM($angsuran_amount_column) as total FROM angsuran WHERE status_angsuran = 'lunas' OR status_angsuran = 'Lunas'";
+                        } else {
+                            $query_angsuran_lunas = "SELECT SUM($angsuran_amount_column) as total FROM angsuran";
+                        }
+                        
+                        $result_angsuran_lunas = mysqli_query($koneksi, $query_angsuran_lunas);
+                        if($result_angsuran_lunas && mysqli_num_rows($result_angsuran_lunas) > 0) {
+                            $jumlah_angsuran_lunas = mysqli_fetch_assoc($result_angsuran_lunas);
+                        }
+
+                        // Query for Bunga Lunas
+                        if (in_array('bunga', $angsuran_columns)) {
+                            if (in_array('status', $angsuran_columns)) {
+                                $query_bunga_lunas = "SELECT SUM(bunga) as total FROM angsuran WHERE status = 'lunas' OR status = 'Lunas'";
+                            } else if (in_array('status_angsuran', $angsuran_columns)) {
+                                $query_bunga_lunas = "SELECT SUM(bunga) as total FROM angsuran WHERE status_angsuran = 'lunas' OR status_angsuran = 'Lunas'";
+                            } else {
+                                $query_bunga_lunas = "SELECT SUM(bunga) as total FROM angsuran";
+                            }
+                            
+                            $result_bunga_lunas = mysqli_query($koneksi, $query_bunga_lunas);
+                            if($result_bunga_lunas && mysqli_num_rows($result_bunga_lunas) > 0) {
+                                $jumlah_bunga_lunas = mysqli_fetch_assoc($result_bunga_lunas);
+                            }
+                        }
+                    }
+
+                    // Calculate Saldo Akhir
+                    $saldo_akhir = ($jumlah_simpanan['total'] ?? 0) + ($jumlah_angsuran_lunas['total'] ?? 0) + ($jumlah_bunga_lunas['total'] ?? 0) - ($jumlah_pinjaman_acc['total'] ?? 0);
+
+                } catch (Exception $e) {
+                    // If any error occurs, set all values to 0
+                    error_log("Database error: " . $e->getMessage());
+                }
                 ?>
-                <p class="card-title text-white">Total Saldo</p>                      
-                <div class="row">
-                  <div class="col-8 text-white">
-                    <h3><?php echo $data_total['total']; ?> Pemasukan</h3>
-                    <p class="text-white font-weight-500 mb-0">
-                      Total Nilai Saldo: Rp <?php echo number_format($data_total['total_saldo'], 0, ',', '.'); ?>
-                    </p>
-                  </div>
-                  <div class="col-4 background-icon">
-                  </div>
-                </div>
               </div>
             </div>
           </div>
+          
           <!-- Tabel Saldo ksp -->
           <div class="row">
             <div class="col-md-12 grid-margin stretch-card">
-              <div class="card">
-                <div class="card-body">
-                  <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4 class="card-title mb-3">Daftar Nominal Pemasukan</h4>
-                  </div>
-                  <table class="table table-bordered" border = "1">
-                    <thead>
-                      <tr>
-                        <th><b>Jumlah Simpanan Pokok</b></th>
-                        <th>Jumlah Simpanan Wajib</th>
-                        <th>Jumlah Simpanan Sukarela</th>
-                      </tr>
-                      <?php
-                        $query_jumlah_simpanan_pokok= mysqli_query($koneksi, "select sum(nominal) as total from simpanan where jenissimpanan_id=1");
-                        $jumlah_simpanan_pokok = mysqli_fetch_assoc($query_jumlah_simpanan_pokok);
-
-                        $query_jumlah_simpanan_wajib= mysqli_query($koneksi, "select sum(nominal) as total from simpanan where jenissimpanan_id=2");
-                        $jumlah_simpanan_wajib = mysqli_fetch_assoc($query_jumlah_simpanan_wajib);
-
-                        $query_jumlah_simpanan_sukarela= mysqli_query($koneksi, "select sum(nominal) as total from simpanan where jenissimpanan_id=3");
-                        $jumlah_simpanan_sukarela = mysqli_fetch_assoc($query_jumlah_simpanan_sukarela);
-
-                        $query_jumlah_simpanan= mysqli_query($koneksi, "select sum(nominal) as total from simpanan");
-                        $jumlah_simpanan = mysqli_fetch_assoc($query_jumlah_simpanan);
-
-                        $query_jumlah_pinjaman_acc= mysqli_query($koneksi, "select sum(jumlah_pinjaman) as total from pinjaman where status='acc'");
-                        $jumlah_pinjaman_acc = mysqli_fetch_assoc($query_jumlah_pinjaman_acc);
-
-                        $query_jumlah_angsuran_lunas= mysqli_query($koneksi, "select sum(nominal) as total from angsuran where status='l'");
-                        $jumlah_angsuran_lunas= mysqli_fetch_assoc($query_jumlah_angsuran_lunas);
-
-                        $query_jumlah_bunga_lunas= mysqli_query($koneksi, "select sum(bunga) as total from angsuran where status='l'");
-                        $jumlah_bunga_lunas= mysqli_fetch_assoc($query_jumlah_bunga_lunas);
-                      ?>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <th>Rp <?=$jumlah_simpanan_pokok['total']?></th>
-                        <th>Rp <?=$jumlah_simpanan_wajib['total']?></th>
-                        <th>Rp <?=$jumlah_simpanan_sukarela['total']?></th>
-                      </tr>
-                      <tr>
-                        <th colspan=2>Total Simpanan</th>
-                        <th><?="Rp ".number_format($jumlah_simpanan['total'],2,',','.')?></th>
-                      </tr>
-                      <tr>
-                        <th colspan=2>Total Pinjaman</th>
-                        <th><?="Rp ".number_format($jumlah_pinjaman_acc['total'],2,',','.')?></th>
-                      </tr>
-                      <tr>
-                        <th colspan=2>Total Angsuran Lunas</th>
-                        <th><?="Rp ".number_format($jumlah_angsuran_lunas['total'],2,',','.')?></th>
-                      </tr>
-                      <tr>
-                        <th colspan=2>Total Bunga Lunas</th>
-                        <th><?="Rp ".number_format($jumlah_angsuran_lunas['total'],2,',','.')?></th>
-                      </tr>
-                      <tr>
-                        <th colspan=2>Total Saldo</th>
-                        <th><?="Rp ".number_format($jumlah_simpanan['total']-$jumlah_pinjaman_acc['total']+$jumlah_angsuran_lunas['total']+$jumlah_bunga_lunas['total'],2,',','.')?></th>
-                      </tr>
-                    </tbody>
-                  </table>
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title mb-3">Rekap Bulanan</h4>
+                        <table id="rekapBulanan" class="table table-bordered">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <th>Keterangan</th>
+                                    <th>Total (Rp)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Total Simpanan Pokok</td>
+                                    <td>Rp <?= number_format($jumlah_simpanan_pokok['total'] ?? 0, 0, ',', '.') ?></td>
+                                </tr>
+                                <tr>
+                                    <td>Total Simpanan Wajib</td>
+                                    <td>Rp <?= number_format($jumlah_simpanan_wajib['total'] ?? 0, 0, ',', '.') ?></td>
+                                </tr>
+                                <tr>
+                                    <td>Total Simpanan Sukarela</td>
+                                    <td>Rp <?= number_format($jumlah_simpanan_sukarela['total'] ?? 0, 0, ',', '.') ?></td>
+                                </tr>
+                                <tr>
+                                    <td><b>Total Simpanan</b></td>
+                                    <td><b>Rp <?= number_format($jumlah_simpanan['total'] ?? 0, 0, ',', '.') ?></b></td>
+                                </tr>
+                                <tr>
+                                    <td>Total Pinjaman ACC</td>
+                                    <td>Rp <?= number_format($jumlah_pinjaman_acc['total'] ?? 0, 0, ',', '.') ?></td>
+                                </tr>
+                                <tr>
+                                    <td>Total Angsuran Lunas</td>
+                                    <td>Rp <?= number_format($jumlah_angsuran_lunas['total'] ?? 0, 0, ',', '.') ?></td>
+                                </tr>
+                                <tr>
+                                    <td>Total Bunga Lunas</td>
+                                    <td>Rp <?= number_format($jumlah_bunga_lunas['total'] ?? 0, 0, ',', '.') ?></td>
+                                </tr>
+                                <tr class="table-primary">
+                                    <td><b>Total Saldo Akhir</b></td>
+                                    <td><b>Rp <?= number_format($saldo_akhir, 0, ',', '.') ?></b></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-              </div>
             </div>
           </div>
-          <!-- Akhir Tabel Saldo ksp -->
 
+          <!-- TABEL REKAP PENARIKAN / PEMASUKAN -->
           <div class="row">
             <div class="col-md-12 grid-margin stretch-card">
-              <div class="card">
-                <div class="card-body">
-                  <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4 class="card-title mb-0">Daftar Data Pemasukan</h4>
-                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalTambahSimpanan">
-                      <i class="ti-plus menu-icon"></i> Tambah Pemasukan
-                    </button>
-                  </div>
-                  <!-- Modal Tambah Pinjaman -->
-                  <div class="modal fade" id="modalTambahSimpanan" tabindex="-1" role="dialog" aria-labelledby="modalTambahSimpananLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-lg" role="document">
-                      <div class="modal-content">
-                        <div class="modal-header">
-                          <h5 class="modal-title" id="modalTambahSimpananLabel">Tambah Data Pemasukan</h5>
-                          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                          </button>
-                        </div>
-                        <form id="formTambahSimpanan" action="../proses/proses_tambah_simpanan.php" method="POST">
-                          <div class="modal-body">
-                            <div class="form-group">
-                              <label for="anggota_id">Nama Anggota</label>
-                              <select class="form-control" name="anggota_id" required>
-                                <option value="">Pilih Anggota</option>
-                                <?php
-                                $query_anggota = mysqli_query($koneksi, "SELECT id, nama FROM anggota ORDER BY nama ASC");
-                                while($anggota = mysqli_fetch_assoc($query_anggota)) {
-                                  echo "<option value='".$anggota['id']."'>".$anggota['nama']."</option>";
-                                }
-                                ?>
-                              </select>
-                            </div>
-                            <div class="form-group">
-                              <label for="nominal">Nominal</label>
-                              <div class="input-group">
-                                <div class="input-group-prepend">
-                                  <span class="input-group-text">Rp</span>
-                                </div>
-                                <input type="text" class="form-control currency" name="nominal" placeholder="Masukkan Nominal Untuk Simpanan Sukarela">
-                              </div>
-                            </div>
-                            <div class="row">
-                              <div class="col-md-6">
-                                <div class="form-group">
-                                  <label for="jenissimpanan_id">Jenis simpanan</label>
-                                  <select class="form-control" name="jenissimpanan_id" required>
-                                    <option value="">Pilih Jenis Simpanan</option>
+                <div class="card">
+                    <div class="card-body">
+                        <h3 class="card-title mb-3">Data Pemasukan / Penarikan</h3>
+
+                        <div class="table-responsive">
+                            <button onclick="printTable()" class="btn btn-primary btn-sm mb-3"><i class="ti-printer btn-icon-append"></i> Print</button>
+                            <button onclick="exportTableToExcel('rekapTable')" class="btn btn-success btn-sm mb-3"><i class="ti-file"></i> Excel</button>
+
+                            <table id="rekapTable" class="table table-bordered">
+                                <thead class="thead-dark">
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Tanggal</th>
+                                        <th>Nama Anggota</th>
+                                        <th>Simpan Pokok</th>
+                                        <th>Simpanan Wajib</th>
+                                        <th>Simpanan Sukarela</th>
+                                        <th>Total Simpanan</th>
+                                        <th>Penarikan</th>
+                                        <th>Total Hutang</th>
+                                        <th>Angsuran</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
                                     <?php
-                                    $query_jenis = mysqli_query($koneksi, "select id, nama from jenissimpanan order by nama asc");
-                                    while($jenis = mysqli_fetch_assoc($query_jenis)) {
-                                      echo "<option value='".$jenis['id']."'>".$jenis['nama']."</option>";
+                                    // Debug: Cek struktur tabel angsuran
+                                    $debug_angsuran = false;
+                                    if (in_array('angsuran', $tables)) {
+                                        $debug_columns = mysqli_query($koneksi, "SHOW COLUMNS FROM angsuran");
+                                        $debug_angsuran_columns = [];
+                                        while ($row = mysqli_fetch_assoc($debug_columns)) {
+                                            $debug_angsuran_columns[] = $row['Field'];
+                                        }
+                                        $debug_angsuran = true;
+                                    }
+
+                                    // Query sederhana untuk menghindari error JOIN yang kompleks
+                                    $query_simpanan = "SELECT * FROM simpanan ORDER BY tanggal DESC LIMIT 50";
+                                    $ambil_simpanan = mysqli_query($koneksi, $query_simpanan);
+                                    $no = 1;
+                                    
+                                    if ($ambil_simpanan && mysqli_num_rows($ambil_simpanan) > 0) {
+                                        while ($data_simpanan = mysqli_fetch_assoc($ambil_simpanan)) {
+                                            $id_anggota = $data_simpanan['id_anggota'] ?? null;
+                                            
+                                            // Get nama anggota
+                                            $nama_anggota = 'Tidak ada nama';
+                                            if ($id_anggota) {
+                                                $query_anggota = "SELECT nama FROM anggota WHERE id_anggota = '$id_anggota' LIMIT 1";
+                                                $result_anggota = mysqli_query($koneksi, $query_anggota);
+                                                if ($result_anggota && mysqli_num_rows($result_anggota) > 0) {
+                                                    $data_anggota = mysqli_fetch_assoc($result_anggota);
+                                                    $nama_anggota = $data_anggota['nama'] ?? 'Tidak ada nama';
+                                                }
+                                            }
+                                            
+                                            // Get total hutang
+                                            $total_hutang = 0;
+                                            if ($id_anggota && in_array('pinjaman', $tables)) {
+                                                $query_hutang = "SELECT SUM(jumlah_pinjaman) as total FROM pinjaman WHERE id_anggota = '$id_anggota'";
+                                                $result_hutang = mysqli_query($koneksi, $query_hutang);
+                                                if ($result_hutang && mysqli_num_rows($result_hutang) > 0) {
+                                                    $data_hutang = mysqli_fetch_assoc($result_hutang);
+                                                    $total_hutang = $data_hutang['total'] ?? 0;
+                                                }
+                                            }
+                                            
+                                            // Get total angsuran
+                                            $total_angsuran = 0;
+                                            if ($id_anggota && $debug_angsuran) {
+                                                // Gunakan kolom yang tersedia
+                                                $angsuran_column = 'jumlah_angsuran';
+                                                if (in_array('jumlah_bayar', $debug_angsuran_columns)) {
+                                                    $angsuran_column = 'jumlah_bayar';
+                                                } else if (in_array('nominal', $debug_angsuran_columns)) {
+                                                    $angsuran_column = 'nominal';
+                                                } else if (in_array('besar_angsuran', $debug_angsuran_columns)) {
+                                                    $angsuran_column = 'besar_angsuran';
+                                                }
+                                                
+                                                $query_angsuran = "SELECT SUM($angsuran_column) as total FROM angsuran WHERE id_anggota = '$id_anggota'";
+                                                $result_angsuran = mysqli_query($koneksi, $query_angsuran);
+                                                if ($result_angsuran && mysqli_num_rows($result_angsuran) > 0) {
+                                                    $data_angsuran = mysqli_fetch_assoc($result_angsuran);
+                                                    $total_angsuran = $data_angsuran['total'] ?? 0;
+                                                }
+                                            }
+                                            
+                                            // Hitung total simpanan
+                                            $total_simpanan = ($data_simpanan['simpanan_pokok'] ?? 0) + 
+                                                             ($data_simpanan['simpanan_wajib'] ?? 0) + 
+                                                             ($data_simpanan['simpanan_sukarela'] ?? 0);
+                                            
+                                            // Format tanggal
+                                            $tanggal = $data_simpanan['tanggal'] ?? '';
+                                            if ($tanggal && $tanggal != '0000-00-00') {
+                                                $tanggal_formatted = date('d-m-Y', strtotime($tanggal));
+                                            } else {
+                                                $tanggal_formatted = '-';
+                                            }
+                                    ?>
+                                            <tr>
+                                                <td><?= $no++ ?></td>
+                                                <td><?= $tanggal_formatted ?></td>
+                                                <td><?= htmlspecialchars($nama_anggota) ?></td>
+                                                <td>Rp <?= number_format($data_simpanan['simpanan_pokok'] ?? 0, 0, ',', '.') ?></td>
+                                                <td>Rp <?= number_format($data_simpanan['simpanan_wajib'] ?? 0, 0, ',', '.') ?></td>
+                                                <td>Rp <?= number_format($data_simpanan['simpanan_sukarela'] ?? 0, 0, ',', '.') ?></td>
+                                                <td><b>Rp <?= number_format($total_simpanan, 0, ',', '.') ?></b></td>
+                                                <td>Rp <?= number_format($data_simpanan['penarikan'] ?? 0, 0, ',', '.') ?></td>
+                                                <td>Rp <?= number_format($total_hutang, 0, ',', '.') ?></td>
+                                                <td>Rp <?= number_format($total_angsuran, 0, ',', '.') ?></td>
+                                            </tr>
+                                    <?php
+                                        }
+                                    } else {
+                                        echo '<tr><td colspan="10" class="text-center">Tidak ada data simpanan</td></tr>';
                                     }
                                     ?>
-                                  </select>
-                                </div>
-                              </div>
-                              <div class="col-md-6">
-                                <div class="form-group">
-                                  <label for="tanggal">Tanggal</label>
-                                  <input type="date" class="form-control" name="tanggal" required>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <div class="modal-footer">
-                            <button type="button" class="btn btn-danger" data-dismiss="modal">Batal</button>
-                            <button type="submit" name="action" value="add" class="btn btn-primary">Simpan</button>
-                          </div>
-                        </form>
-                      </div>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                  </div>
-                  <!-- End Modal -->
-                  <div class="table-responsive">
-                    <table id="tabelSimpanan" class="table table-striped table-borderless" style="width:100%">
-                      <thead>
-                        <tr>
-                          <th>No</th>
-                          <th>Anggota</th>
-                          <th>Simpanan</th>
-                          <th>Nominal</th>
-                          <th>Tanggal</th>
-
-                        </tr>  
-                      </thead>
-                      <tbody>
-                        <?php
-                            $query =mysqli_query($koneksi, "SELECT
-                                simpanan.*,
-                                anggota.nama AS nama_anggota,
-                                jenissimpanan.nama AS nama_simpanan
-                            FROM simpanan
-                            LEFT JOIN anggota
-                                ON simpanan.anggota_id = anggota.id
-                            LEFT JOIN jenissimpanan
-                                ON simpanan.jenissimpanan_id = jenissimpanan.id
-                                ") ;
-                            
-                        while($result = mysqli_fetch_array($query)){
-
-                        
-                        $no = 1;
-                        
-                          
-                        ?>
-                        <tr>
-                          <td><?php echo $no++; ?></td>
-                          <td>
-                            <div style="font-weight: bold;"><?php echo $result['nama_anggota']; ?></div>
-                            <small class="text-muted">ID: <?php echo $result['id']; ?></small>
-                          </td>
-                          <td>
-                            <div style="font-weight: bold;"><?php echo $result['nama_simpanan']; ?></div>
-                          </td>
-                          <td data-sort="<?php echo $result['nominal']; ?>">
-                            Rp <?php echo number_format($result['nominal'], 0, ',', '.'); ?>
-                          </td>                          
-                          <td data-sort="<?php echo strtotime($result['tanggal']); ?>">
-                            <?php echo date('d/m/Y', strtotime($result['tanggal'])); ?>
-                          </td>
-                        </tr>
-                        <?php } ?>
-                      </tbody>
-                    </table>
-                  </div>
                 </div>
-              </div>
             </div>
           </div>
+        </div>
         <!-- content-wrapper ends -->
+        
         <!-- partial:partials/_footer.html -->
         <footer class="footer">
           <div class="d-sm-flex justify-content-center justify-content-sm-between">
@@ -368,79 +498,55 @@
   <!-- endinject -->
 
   <script>
-    // Format currency
-    function formatRupiah(angka) {
-        var number_string = angka.replace(/[^,\d]/g, '').toString(),
-            split = number_string.split(','),
-            sisa = split[0].length % 3,
-            rupiah = split[0].substr(0, sisa),
-            ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+    // Print function
+    function printTable() {
+        window.print();
+    }
 
-        if (ribuan) {
-            separator = sisa ? '.' : '';
-            rupiah += separator + ribuan.join('.');
-        }
-
-        rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
-        return rupiah;
+    // Export to Excel function
+    function exportTableToExcel(tableId) {
+        var table = document.getElementById(tableId);
+        var html = table.outerHTML;
+        var url = 'data:application/vnd.ms-excel;charset=utf-8,' + encodeURIComponent(html);
+        var downloadLink = document.createElement("a");
+        downloadLink.href = url;
+        downloadLink.download = "rekap_data.xls";
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
     }
 
     $(document).ready(function() {
-        // Currency input formatting
-        $('.currency').on('keyup', function() {
-            $(this).val(formatRupiah($(this).val()));
-        });
-
-        // Form submission handling
-        $('#formTambahSimpanan').on('submit', function(e) {
-            var nominal = $('.currency').val().replace(/\./g, '');
-            $('.currency').val(nominal);
-        });
-
-        // Set default date
-        var today = new Date().toISOString().split('T')[0];
-        $('input[name="tanggal"]').val(today);
-
-        // Initialize DataTable
-        var table = $('#tabelSimpanan').DataTable({
+        // Initialize DataTable for rekapTable
+        $('#rekapTable').DataTable({
             responsive: true,
             dom: 'Blfrtip',
             lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
             buttons: [
-                        {
-                            extend: 'copy',
-                            text: '<i class="ti-clipboard"></i> Copy',
-                            className: 'btn btn-info btn-sm mb-5',
-                            exportOptions: {
-                                columns: [0, 1, 2, 3, 4]
-                            }
-                        },
-                        {
-                            extend: 'excel',
-                            text: '<i class="ti-file"></i> Excel',
-                            className: 'btn btn-success btn-sm mb-5',
-                            exportOptions: {
-                                columns: [0, 1, 2, 3, 4]
-                            }
-                        },
-                        {
-                            extend: 'pdf',
-                            text: '<i class="ti-file"></i> PDF',
-                            className: 'btn btn-danger btn-sm mb-5',
-                            exportOptions: {
-                                columns: [0, 1, 2, 3, 4]
-                            }
-                        },
-                        {
-                            extend: 'print',
-                            text: '<i class="ti-printer"></i> Print',
-                            className: 'btn btn-dark btn-sm mb-5',
-                            exportOptions: {
-                                columns: [0, 1, 2, 3, 4]
-                            }
-                        }
-                    
-                
+                {
+                    extend: 'copy',
+                    text: '<i class="ti-clipboard"></i> Copy',
+                    className: 'btn btn-info btn-sm',
+                    exportOptions: {
+                        columns: ':visible'
+                    }
+                },
+                {
+                    extend: 'excel',
+                    text: '<i class="ti-file"></i> Excel',
+                    className: 'btn btn-success btn-sm',
+                    exportOptions: {
+                        columns: ':visible'
+                    }
+                },
+                {
+                    extend: 'print',
+                    text: '<i class="ti-printer"></i> Print',
+                    className: 'btn btn-dark btn-sm',
+                    exportOptions: {
+                        columns: ':visible'
+                    }
+                }
             ],
             language: {
                 search: "Cari:",
@@ -455,39 +561,18 @@
                     next: "Selanjutnya",
                     previous: "Sebelumnya"
                 }
-            },
-            order: [[4, "desc"]], // Urutkan berdasarkan tanggal secara descending
-            columnDefs: [
-                {
-                    targets: 0, // kolom nomor
-                    orderable: false
-                },
-                {
-                    targets: 3, // kolom nominal
-                    render: function(data, type, row) {
-                        if (type === 'display' || type === 'filter') {
-                            return data;
-                        }
-                        return data.replace(/[^\d]/g, '');
-                    }
-                },
-                {
-                    targets: 4, // kolom tanggal
-                    render: function(data, type, row) {
-                        if (type === 'sort') {
-                            return row[4].split('data-sort="')[1].split('"')[0];
-                        }
-                        return data;
-                    }
-                }
-            ]
+            }
         });
 
-        // Menambahkan class untuk styling button
-        $('.dt-buttons').addClass('mb-3');
+        // Initialize DataTable for rekapBulanan
+        $('#rekapBulanan').DataTable({
+            responsive: true,
+            paging: false,
+            searching: false,
+            info: false,
+            ordering: false
+        });
     });
   </script>
 </body>
-
 </html>
-
