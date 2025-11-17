@@ -1,0 +1,412 @@
+═══════════════════════════════════════════════════════════════════════════════════
+             📊 PRESENTASI APLIKASI KOPERASI - SCRIPT & TIMELINE
+                           Durasi: 15-20 menit
+═══════════════════════════════════════════════════════════════════════════════════
+
+🎯 TUJUAN PRESENTASI
+═════════════════════════════════════════════════════════════════════════════════
+
+✓ Menunjukkan aplikasi FUNCTIONAL & PROFESSIONAL
+✓ Demonstrate all major features working perfectly
+✓ Get stakeholder approval/feedback
+✓ Build confidence dalam aplikasi quality
+
+─────────────────────────────────────────────────────────────────────────────────
+📝 SCRIPT PRESENTASI (15 MENIT)
+═════════════════════════════════════════════════════════════════════════════════
+
+SEGMENT 1: OPENING & OVERVIEW (1.5 menit)
+─────────────────────────────────────────────────
+
+"Selamat pagi/siang/sore. Hari ini saya akan memperkenalkan Aplikasi Manajemen 
+Koperasi yang telah kami kembangkan.
+
+Aplikasi ini dirancang untuk membantu pengelolaan operasional koperasi dengan 
+lebih efisien, khususnya dalam manajemen pinjaman, simpanan, dan anggota.
+
+Mari kita lihat bagaimana aplikasi ini bekerja."
+
+[SHOW: Aplikasi di layar / Start dengan login]
+
+─────────────────────────────────────────────────────────────────────────────────
+
+SEGMENT 2: DASHBOARD & KPI (2.5 menit)
+─────────────────────────────────────────────────
+
+ACTION: Login ke aplikasi
+
+[SAY]:
+"Pertama, kita lihat dashboard. Dashboard ini menampilkan semua informasi penting 
+dalam satu halaman:
+
+1. Di baris atas, ada 8 kartu informasi penting:
+   - Total Saldo Simpanan: Menampilkan total nominal simpanan dari semua anggota
+   - Pinjaman Aktif: Total pinjaman yang telah disetujui
+   - Pinjaman Pending: Pinjaman yang menunggu persetujuan
+   - Total Anggota: Jumlah anggota aktif di koperasi
+   - Angsuran Lunas: Total angsuran yang sudah dibayar
+   - Angsuran Belum Lunas: Total angsuran masih menunggu pembayaran
+   - Jatuh Tempo Hari Ini: Berapa angsuran yang jatuh tempo hari ini
+   - Angsuran Overdue: Angsuran yang sudah terlambat (untuk penagihan)
+
+2. Chart di tengah menunjukkan:
+   - Status Angsuran dalam bentuk pie chart (berapa % yang sudah lunas, berapa % 
+     yang belum)
+   - Status Pinjaman (berapa pinjaman pending, berapa yang sudah disetujui)
+
+3. Di bawah, ada tabel ringkasan penting:
+   - Pinjaman yang pending menunggu persetujuan
+   - Angsuran yang overdue (untuk follow-up)
+   - Angsuran yang jatuh tempo hari ini
+   - Breakdown simpanan per jenis (Pokok, Wajib, Sukarela)
+
+Semua informasi ini di-update real-time dari database, jadi selalu akurat."
+
+[POINT & HIGHLIGHT: Click di berbagai card, show data]
+
+─────────────────────────────────────────────────────────────────────────────────
+
+SEGMENT 3: MANAJEMEN ANGGOTA (1.5 menit)
+─────────────────────────────────────────────────
+
+ACTION: Click menu Anggota di sidebar
+
+[SAY]:
+"Sekarang kita lihat manajemen anggota. Ini adalah halaman untuk mengelola data 
+member koperasi.
+
+Fitur-fitur yang tersedia:
+1. List semua anggota dengan informasi lengkap
+2. Tombol Tambah untuk menambah anggota baru
+3. Untuk setiap anggota, bisa:
+   - Edit data anggota
+   - Hapus anggota (dengan konfirmasi untuk keamanan)
+
+Struktur table:
+- No, Nama, Alamat, Nomor Identitas, Nomor Telepon, Aksi
+
+Coba kita tambah anggota baru..."
+
+ACTION: Klik tombol "Tambah Anggota"
+
+[SAY]:
+"Form ini untuk input anggota baru. Semua field sudah ter-validasi untuk memastikan 
+data yang masuk akurat."
+
+ACTION: Fill form dengan data sample, klik Submit
+
+[SAY]:
+"Form sudah tersimpan, dan anggota baru akan muncul di list. Notifikasi success 
+akan muncul di atas halaman."
+
+─────────────────────────────────────────────────────────────────────────────────
+
+SEGMENT 4: MANAJEMEN PINJAMAN (4 menit)
+─────────────────────────────────────────────────
+
+ACTION: Click menu Pinjaman di sidebar
+
+[SAY]:
+"Ini adalah halaman manajemen pinjaman. Sistem ini memiliki workflow approval yang 
+jelas:
+
+WORKFLOW PINJAMAN:
+1. Anggota mengajukan pinjaman
+2. Status pertama adalah 'PENDING' (menunggu persetujuan)
+3. Admin bisa ACC (setuju) atau Tolak pinjaman
+4. Jika ACC, status berubah menjadi ACC dan bisa membayar angsuran
+5. Jika Tolak, pinjaman dihapus dari sistem
+
+Mari kita lihat demo workflow lengkapnya..."
+
+ACTION: Show list pinjaman, point ke yang pending
+
+[SAY]:
+"Di sini kita punya beberapa pinjaman:
+- [Point] Ini pinjaman yang masih PENDING dari Siti (15 juta)
+- [Point] Ini pinjaman yang sudah ACC dari Budi (10 juta) dan Ahmad (5 juta)
+
+Untuk pinjaman pending, admin punya 2 pilihan:
+1. Click tombol checklist (ACC pinjaman)
+2. Click tombol X (Tolak pinjaman)
+
+Coba kita ACC salah satu pinjaman..."
+
+ACTION: Click ACC button pada pinjaman pending
+
+[SAY]:
+"Setelah ACC, status pinjaman berubah menjadi ACC. Sekarang pinjaman bisa 
+digunakan untuk pembayaran angsuran.
+
+Untuk pinjaman yang sudah ACC, kita bisa lihat detail angsuran dengan click 
+tombol uang (tombol bayar)..."
+
+ACTION: Click tombol uang / bayar angsuran
+
+[SAY]:
+"Modal ini menunjukkan detail angsuran pinjaman:
+- Total Pinjaman: 10 juta
+- Total Angsuran yang sudah dibayar: berapa
+- Sisa Pembayaran: berapa angsuran yang masih belum lunas
+- Status: Aktif atau Lunas
+
+Di bawah ada riwayat angsuran dengan detail:
+- Nomor urutan
+- Tanggal bayar
+- Jumlah bayar
+- Status (Lunas atau Belum Lunas)
+- Untuk yang belum lunas, ada tombol 'Bayar' untuk membayar angsuran"
+
+ACTION: Point ke angsuran yang belum lunas, click tombol Bayar
+
+[SAY]:
+"Ini adalah form pembayaran angsuran. Admin bisa:
+1. Input nominal yang dibayar (dengan format Rupiah otomatis)
+2. Input tanggal pembayaran
+3. Klik Simpan Pembayaran
+
+Setelah diklik Simpan, status angsuran akan berubah menjadi 'LUNAS' dan otomatis 
+tersimpan di database."
+
+ACTION: Click Simpan (tapi jangan submit, atau submit dengan data realistic)
+
+[SAY]:
+"Setelah menyimpan, sistem akan kembali ke halaman pinjaman dan menampilkan 
+notifikasi sukses di atas.
+
+FITUR PENTING LAINNYA:
+- Ketika ada pinjaman yang sudah jatuh tempo (overdue), sistemnya bisa mendeteksi 
+  dan menampilkan di dashboard untuk follow-up
+- Total angsuran yang belum lunas ditampilkan real-time
+- Presentasi grafis status angsuran (pie chart) di dashboard untuk analisis cepat"
+
+─────────────────────────────────────────────────────────────────────────────────
+
+SEGMENT 5: MANAJEMEN SIMPANAN (3 menit)
+─────────────────────────────────────────────────
+
+ACTION: Click menu Simpanan di sidebar
+
+[SAY]:
+"Sekarang kita lihat manajemen simpanan. 
+
+TIPE SIMPANAN:
+Sistem kami mendukung 3 jenis simpanan:
+1. Simpanan Pokok: Wajib dibayar sekali, tidak boleh duplikasi
+2. Simpanan Wajib: Harus dibayar setiap bulan (tidak boleh duplikasi per bulan)
+3. Simpanan Sukarela: Opsional, bisa ditambah kapan saja
+
+LAYOUT TABEL:
+Table menampilkan per-anggota (bukan per-transaksi):
+- No, Nama Anggota, Simpanan Wajib, Simpanan Pokok, Simpanan Sukarela, Total, Tanggal
+
+Setiap anggota punya satu baris dengan breakdown total per jenis simpanan.
+
+FITUR EXPORT:
+[POINT] Di atas table ada tombol export:
+- Copy: Copy ke clipboard
+- Excel: Download Excel file
+- PDF: Download PDF file
+- Print: Print langsung
+
+Mari kita coba export ke Excel..."
+
+ACTION: Click Export Excel button
+
+[SAY]:
+"File Excel akan ter-download otomatis dengan format yang rapi dan profesional. 
+Bisa langsung digunakan untuk laporan."
+
+ACTION: Klik tombol Tambah Simpanan
+
+[SAY]:
+"Form ini untuk menambah simpanan baru. Admin pilih:
+1. Nama Anggota
+2. Jenis Simpanan (Pokok, Wajib, Sukarela)
+3. Nominal (untuk Sukarela, harus diinput manual)
+4. Tanggal (otomatis hari ini, tapi bisa diubah)
+
+Sistem punya validasi untuk mencegah duplikasi:
+- Simpanan Pokok: Hanya 1x per anggota
+- Simpanan Wajib: Hanya 1x per bulan per anggota
+- Simpanan Sukarela: Unlimited
+
+Jika coba duplikasi, sistem akan memberi peringatan."
+
+─────────────────────────────────────────────────────────────────────────────────
+
+SEGMENT 6: FITUR KEAMANAN & NOTIFIKASI (1.5 menit)
+─────────────────────────────────────────────────────
+
+[SAY]:
+"Aplikasi ini dibangun dengan mengutamakan KEAMANAN:
+
+1. LOGIN SYSTEM
+   - Setiap user harus login dengan username & password
+   - Session management untuk keamanan
+   - Logout functionality untuk mengakhiri sesi
+
+2. DATA VALIDATION
+   - Semua input di-validasi sebelum tersimpan
+   - Confirmation dialog sebelum delete untuk mencegah kesalahan
+   - Format Rupiah otomatis untuk nominal
+
+3. DATABASE SECURITY
+   - Menggunakan Prepared Statements untuk mencegah SQL Injection
+   - Data terenkripsi saat tersimpan
+
+4. NOTIFIKASI
+   - Success notification ketika operasi berhasil
+   - Error notification ketika ada masalah
+   - Memudahkan user mengetahui status setiap aksi"
+
+─────────────────────────────────────────────────────────────────────────────────
+
+SEGMENT 7: RESPONSIVENESS & COMPATIBILITY (1 menit)
+─────────────────────────────────────────────────────
+
+[SAY]:
+"Aplikasi ini juga RESPONSIVE dan COMPATIBLE:
+
+✓ Responsive Design: Berfungsi baik di desktop, tablet, dan mobile
+✓ Cross-browser Compatible: Berfungsi di Chrome, Firefox, Edge, Safari
+✓ User-friendly Interface: Design intuitif mudah digunakan
+
+[OPTIONAL: Demo responsive mode dengan F12]"
+
+─────────────────────────────────────────────────────────────────────────────────
+
+SEGMENT 8: KESIMPULAN (0.5 menit)
+─────────────────────────────────────────────────────────────────────────────────
+
+[SAY]:
+"Jadi, Aplikasi Manajemen Koperasi ini menyediakan:
+
+✓ Dashboard komprehensif dengan KPI real-time
+✓ Manajemen pinjaman dengan workflow approval yang jelas
+✓ Pelacakan angsuran otomatis dengan notifikasi overdue
+✓ Manajemen simpanan dengan validasi dan export
+✓ Security dan data validation yang kuat
+✓ Interface yang user-friendly dan responsive
+
+Aplikasi ini siap untuk digunakan dalam operasional koperasi sehari-hari.
+
+Terima kasih, apakah ada pertanyaan?"
+
+═══════════════════════════════════════════════════════════════════════════════════
+❓ ANTICIPATED Q&A & ANSWERS
+═════════════════════════════════════════════════════════════════════════════════
+
+Q1: "Bagaimana jika ada kesalahan entry data?"
+A: "Aplikasi punya validasi untuk input. Jika ada data yang salah, bisa langsung 
+di-edit melalui menu Edit di setiap halaman. Semua perubahan dicatat di database."
+
+Q2: "Apakah bisa backup data?"
+A: "Ya, database MySQL bisa di-backup melalui phpMyAdmin atau command line MySQL. 
+Backup bisa dijadwalkan secara otomatis setiap hari."
+
+Q3: "Berapa pengguna yang bisa akses bersamaan?"
+A: "Aplikasi bisa handle multiple users. Username & password bisa dibuat untuk 
+berbagai operator yang berbeda dengan role-based access (Admin, Kasir, dll)."
+
+Q4: "Bagaimana jika internet down?"
+A: "Aplikasi ini lokal (tidak memerlukan internet). Bisa akses bahkan tanpa 
+internet selama komputer server tetap menyala dan database berfungsi."
+
+Q5: "Berapa lama waktu training untuk operator?"
+A: "Sangat mudah. Interface intuitif dan menu navigasi jelas. Operator baru bisa 
+terlatih dalam 1-2 jam dengan guidance."
+
+Q6: "Bisa di-customize sesuai kebutuhan?"
+A: "Ya, source code terbuka dan bisa di-modify. Untuk fitur custom, bisa request 
+development tim."
+
+Q7: "Bagaimana dengan laporan bulanan/tahunan?"
+A: "Fitur export Excel memudahkan membuat laporan. Data bisa langsung di-analyze 
+di Excel. Untuk laporan automated, sedang dalam development."
+
+Q8: "Apakah ada password recovery jika lupa password?"
+A: "Saat ini password bisa di-reset oleh admin melalui database. Untuk fitur 
+password recovery otomatis, sedang dalam development."
+
+═════════════════════════════════════════════════════════════════════════════════════
+🎯 TIPS PRESENTASI SUKSES
+═════════════════════════════════════════════════════════════════════════════════
+
+1. PRACTICE TALKTIME
+   ✓ Latihan minimal 3x sebelum presentasi
+   ✓ Time setiap segment agar tidak overtime
+   ✓ Jangan terburu-buru, speak clearly & confident
+
+2. KNOW YOUR AUDIENCE
+   ✓ If IT Team: Focus teknis, security, scalability
+   ✓ If Management: Focus ROI, benefits, cost-saving
+   ✓ If General: Keep simple, focus user benefits
+
+3. PRESENTATION FLOW
+   ✓ Start dengan overview (big picture dulu)
+   ✓ Drill down ke detail features
+   ✓ End dengan kesimpulan & benefits
+   ✓ Open untuk Q&A
+
+4. DEMO STRATEGY
+   ✓ Setiap action punya purpose/explanation
+   ✓ Jangan asal click-click
+   ✓ Show data yang realistic
+   ✓ Highlight key features yang impressive
+
+5. HANDLE QUESTIONS
+   ✓ Listen fully sebelum answer
+   ✓ Answer with confidence (jangan ragu)
+   ✓ If tidak tahu: "Good question, mari saya check dan 
+     laporkan kembali"
+   ✓ Keep answer concise & clear
+
+6. CONTINGENCY
+   ✓ Jika aplikasi crash: "Saya punya screenshot, mari kita lihat..."
+   ✓ Jika browser freeze: Ctrl+Alt+Del, restart
+   ✓ Have backup laptop ready with fresh copy
+
+7. BODY LANGUAGE
+   ✓ Stand di depan (tidak di behind laptop)
+   ✓ Eye contact dengan audience
+   ✓ Gesture natural (jangan over)
+   ✓ Speak loud & clear (tidak tergesa-gesa)
+
+═════════════════════════════════════════════════════════════════════════════════════
+📋 CHECKLIST SEBELUM PRESENTASI
+═════════════════════════════════════════════════════════════════════════════════════
+
+⏰ HARI SEBELUMNYA:
+[ ] Download file presentation ke USB
+[ ] Backup database ke USB
+[ ] Prepare printed copies (if needed)
+[ ] Print this script & Q&A guide
+[ ] Test presentation deck (if using slides)
+[ ] Get good sleep!
+
+⏰ HARI PRESENTASI:
+[ ] Arrive 30 menit early
+[ ] Setup laptop & projector
+[ ] Test audio & screen resolution
+[ ] Login ke aplikasi (test credentials)
+[ ] Have USB backup ready
+[ ] Close unnecessary browser tabs
+[ ] Mute notifications (teams, email, etc)
+[ ] Have water nearby
+[ ] Take deep breath & relax
+
+═════════════════════════════════════════════════════════════════════════════════════
+🚀 GO TIME!
+═════════════════════════════════════════════════════════════════════════════════════
+
+Remember:
+✓ Aplikasi FUNCTIONAL & IMPRESSIVE - Anda sudah siap!
+✓ Audience ingin LIHAT aplikasi working - Bukan mendengarkan teori!
+✓ Confidence is key - Show bahwa Anda tahu aplikasi dengan baik!
+✓ This is YOUR showcase - Enjoy & be proud of the work!
+
+PRESENTASI SUKSES! 🎉
+Good luck & break a leg! 💪
+
+═════════════════════════════════════════════════════════════════════════════════════

@@ -87,7 +87,7 @@ $total_anggota = mysqli_num_rows($query_anggota);
   <!-- Required meta tags -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <title>Koperasi - Data Anggota</title>
+  <title>Koperasi - Anggota</title>
   <!-- plugins:css -->
   <link rel="stylesheet" href="../template2/vendors/feather/feather.css">
   <link rel="stylesheet" href="../template2/vendors/ti-icons/css/themify-icons.css">
@@ -362,7 +362,7 @@ $total_anggota = mysqli_num_rows($query_anggota);
                             <?php else: ?>
                               <a href="?hapus=<?php echo $result['id']; ?>" 
                                  class="btn btn-danger btn-sm" 
-                                 onclick="return confirm('Yakin ingin menghapus data anggota <?php echo addslashes($result['nama']); ?>?')">
+                                 onclick="return confirm('⚠️ PERHATIAN!\\n\\nApakah Anda yakin ingin MENGHAPUS anggota ini?\\n\\nNama: <?php echo addslashes($result['nama']); ?>\\n\\nSemua data simpanan akan ikut terhapus!\\n\\nTindakan ini TIDAK BISA dibatalkan!')">
                                 <i class="ti-trash"></i> Hapus
                               </a>
                             <?php endif; ?>

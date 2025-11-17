@@ -5,7 +5,7 @@
   <!-- Required meta tags -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <title>Koperasi - Peminjaman</title>
+  <title>Koperasi - Pinjaman</title>
   <!-- plugins:css -->
   <link rel="stylesheet" href="../../template2/vendors/feather/feather.css">
   <link rel="stylesheet" href="../../template2/vendors/ti-icons/css/themify-icons.css">
@@ -306,15 +306,22 @@
                           <td>
                             <div class="btn-group" role="group">
                               <?php if($row['status'] == 'pending'): ?>
-                                <a href="../../proses/pinjaman_acc.php?pinjaman_id=<?php echo $row['id_pinjaman']; ?>" 
-                                   class="btn btn-warning btn-sm" title="ACC Pinjaman">
+                                <button type="button" 
+                                        class="btn btn-warning btn-sm btn-acc-pinjaman"
+                                        data-id="<?php echo $row['id_pinjaman']; ?>"
+                                        data-nama="<?php echo htmlspecialchars($row['nama_anggota'], ENT_QUOTES); ?>"
+                                        data-jumlah="<?php echo $row['jumlah_pinjaman']; ?>"
+                                        title="ACC Pinjaman">
                                   <i class="ti-check"></i>
-                                </a>
-                                <a href="javascript:void(0);" 
-                                   onclick="if(confirm('Apakah Anda yakin ingin menolak pinjaman ini?')) window.location.href='../../proses/hapus_pinjaman.php?pinjaman_id=<?php echo $row['id_pinjaman']; ?>'"
-                                   class="btn btn-danger btn-sm" title="Tolak Pinjaman">
+                                </button>
+                                <button type="button" 
+                                        class="btn btn-danger btn-sm btn-tolak-pinjaman"
+                                        data-id="<?php echo $row['id_pinjaman']; ?>"
+                                        data-nama="<?php echo htmlspecialchars($row['nama_anggota'], ENT_QUOTES); ?>"
+                                        data-jumlah="<?php echo $row['jumlah_pinjaman']; ?>"
+                                        title="Tolak Pinjaman">
                                   <i class="ti-close"></i>
-                                </a>
+                                </button>
                               <?php endif; ?>
                               
                               <?php if($row['status'] == 'acc'): ?>
@@ -842,15 +849,46 @@
 
         // Menambahkan class untuk styling button
         $('.dt-buttons').addClass('mb-3');
+
+        // Event handler untuk tombol ACC Pinjaman
+        $(document).on('click', '.btn-acc-pinjaman', function() {
+            const peminjamanId = $(this).data('id');
+            const nama = $(this).data('nama');
+            const jumlah = $(this).data('jumlah');
+            
+            accPinjaman(peminjamanId, nama, jumlah);
+        });
+
+        // Event handler untuk tombol Tolak Pinjaman
+        $(document).on('click', '.btn-tolak-pinjaman', function() {
+            const peminjamanId = $(this).data('id');
+            const nama = $(this).data('nama');
+            const jumlah = $(this).data('jumlah');
+            
+            tolakPinjaman(peminjamanId, nama, jumlah);
+        });
     });
 
     function formatRupiah(angka) {
         return 'Rp ' + new Intl.NumberFormat('id-ID').format(angka);
     }
 
-    // Fungsi untuk format rupiah di bagian lain yang mungkin membutuhkan
-    function formatRupiah(angka) {
-        return 'Rp ' + new Intl.NumberFormat('id-ID').format(angka);
+    // Fungsi untuk konfirmasi ACC pinjaman
+    function accPinjaman(peminjamanId, nama, jumlah) {
+        const message = '✅ KONFIRMASI\n\nApakah Anda yakin ingin MENYETUJUI pinjaman ini?\n\nPeminjam: ' + nama + '\nJumlah: ' + formatRupiah(jumlah) + '\n\nPeminjam akan bisa mulai bayar angsuran setelah ini.';
+        
+        if (confirm(message)) {
+            window.location.href = '../../proses/pinjaman_acc.php?pinjaman_id=' + peminjamanId;
+        }
+    }
+
+    // Fungsi untuk konfirmasi tolak pinjaman
+    function tolakPinjaman(peminjamanId, nama, jumlah) {
+        const message = '⚠️ PERHATIAN!\n\nApakah Anda yakin ingin MENOLAK pinjaman ini?\n\nPeminjam: ' + nama + '\nJumlah: ' + formatRupiah(jumlah) + '\n\nSemua data angsuran akan ikut terhapus!\n\nTindakan ini TIDAK BISA dibatalkan!';
+        
+        if (confirm(message)) {
+            window.location.href = '../../proses/hapus_pinjaman.php?pinjaman_id=' + peminjamanId;
+        }
     }
   </script>
 </body>

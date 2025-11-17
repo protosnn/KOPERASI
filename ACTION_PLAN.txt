@@ -1,0 +1,361 @@
+ACTION PLAN - IMPLEMENTASI REKOMENDASI APLIKASI KOPERASI
+========================================================
+
+Generated: 17 November 2025
+
+═══════════════════════════════════════════════════════════════════════════════
+WEEK 1-2: PRIORITY 1 - CRITICAL FIXES
+═══════════════════════════════════════════════════════════════════════════════
+
+[ ] DAY 1-2: Security Audit & Fixes
+    [ ] Review semua file proses/ untuk SQL Injection
+    [ ] Replace direct queries dengan prepared statements
+    [ ] Test security dengan OWASP top 10
+    [ ] Fix input validation di semua form
+    Priority: CRITICAL
+    Effort: 2-3 jam
+    Risk: HIGH if not done
+
+[ ] DAY 3-4: Input Validation System
+    [ ] Buat validation.php helper function
+    [ ] Tambah min/max untuk nominal pinjaman (default: 100K - 100M)
+    [ ] Tambah min/max untuk tenor (default: 1-60 bulan)
+    [ ] Validasi tanggal (tidak boleh masa depan)
+    [ ] Test dengan edge cases
+    Priority: CRITICAL
+    Effort: 4-6 jam
+
+[ ] DAY 5: Database Schema Improvements
+    [ ] Tambah INDEX untuk key columns
+    [ ] Ubah status angsuran menjadi ENUM
+    [ ] Tambah fields di pinjaman (created_by, updated_by)
+    [ ] Tambah timestamp fields (created_at, updated_at)
+    [ ] Create migration script
+    Priority: HIGH
+    Effort: 3-4 jam
+
+[ ] DAY 6-7: Laporan Dasar (Phase 1)
+    [ ] Buat file reports/LaporanSimpanan.php
+    [ ] Query: Total simpanan by jenis & tanggal
+    [ ] Laporan: PDF export
+    [ ] Laporan: Excel export
+    [ ] Laporan: Print view
+    Priority: CRITICAL
+    Effort: 6-8 jam
+
+═══════════════════════════════════════════════════════════════════════════════
+WEEK 3: PRIORITY 1 CONTINUED + START PRIORITY 2
+═══════════════════════════════════════════════════════════════════════════════
+
+[ ] DAY 1-2: Laporan Lanjutan (Phase 2)
+    [ ] Buat file reports/LaporanPinjaman.php
+    [ ] Query: Pinjaman status, tenor, total
+    [ ] Buat file reports/LaporanAngsuran.php
+    [ ] Query: Angsuran lunas, belum lunas, overdue
+    [ ] Filter by date range
+    Priority: HIGH
+    Effort: 8-10 jam
+
+[ ] DAY 3-4: Bunga & Denda System (Phase 1)
+    [ ] Buat tabel bunga_config
+    [ ] Create admin/settings/BungaConfig.php
+    [ ] Form untuk set percentage, nominal min/max
+    [ ] Simpan configuration ke database
+    Priority: HIGH
+    Effort: 6-8 jam
+
+[ ] DAY 5: Konfirmasi Dialog Improvements
+    [ ] Tambah confirmation sebelum hapus anggota
+    [ ] Tambah confirmation sebelum hapus pinjaman
+    [ ] Tampilkan detail data sebelum delete
+    [ ] Use SweetAlert atau similar library
+    Priority: MEDIUM
+    Effort: 2-3 jam
+
+[ ] DAY 6-7: Pagination Implementation
+    [ ] Implementasi pagination di anggota.php
+    [ ] Implementasi pagination di pinjaman.php
+    [ ] Implementasi pagination di simpanan.php
+    [ ] Set default 25 rows per page
+    [ ] Add "Show All" option
+    Priority: MEDIUM
+    Effort: 6-8 jam
+
+═══════════════════════════════════════════════════════════════════════════════
+WEEK 4: PRIORITY 2 - IMPORTANT FEATURES
+═══════════════════════════════════════════════════════════════════════════════
+
+[ ] DAY 1-2: Notifikasi System
+    [ ] Buat tabel notifikasi
+    [ ] Create NotificationHelper.php
+    [ ] Function: create_notification()
+    [ ] Function: get_unread_notifications()
+    [ ] Badge di navbar untuk jumlah notifikasi
+    Priority: HIGH
+    Effort: 6-8 jam
+
+[ ] DAY 3: Notifikasi Rules Engine
+    [ ] Create rule: Angsuran jatuh tempo besok
+    [ ] Create rule: Angsuran sudah overdue
+    [ ] Create rule: Pinjaman pending > 7 hari
+    [ ] Trigger notifications saat page load
+    Priority: HIGH
+    Effort: 4-5 jam
+
+[ ] DAY 4-5: Status Pencairan Pinjaman
+    [ ] Tambah field status_pencairan di tabel pinjaman
+    [ ] Tambah field tanggal_pencairan
+    [ ] Create interface untuk update status
+    [ ] Filter pinjaman by pencairan status
+    [ ] Verifikasi saat ACC pinjaman
+    Priority: MEDIUM
+    Effort: 6-7 jam
+
+[ ] DAY 6-7: Advanced Search & Filter
+    [ ] Create SearchHelper.php
+    [ ] Search by nama anggota (live search)
+    [ ] Search by nomor pinjaman
+    [ ] Filter by date range (dari-sampai)
+    [ ] Filter by multiple status
+    [ ] Saved filters
+    Priority: MEDIUM
+    Effort: 8-10 jam
+
+═══════════════════════════════════════════════════════════════════════════════
+WEEK 5: PRIORITY 2 CONTINUED + PRIORITY 3
+═══════════════════════════════════════════════════════════════════════════════
+
+[ ] DAY 1-2: Audit Log System
+    [ ] Buat tabel audit_logs
+    [ ] Create AuditHelper.php
+    [ ] Log setiap CREATE/UPDATE/DELETE
+    [ ] Simpan user_id, action, timestamp
+    [ ] Create audit_logs.php viewer
+    Priority: HIGH
+    Effort: 6-8 jam
+
+[ ] DAY 3-4: Role-Based Access Control (RBAC)
+    [ ] Buat tabel roles dan permissions
+    [ ] Create RoleHelper.php
+    [ ] Define roles: Admin, Manager, Kasir
+    [ ] Define permissions per role
+    [ ] Add role check di setiap halaman
+    Priority: MEDIUM
+    Effort: 8-10 jam
+
+[ ] DAY 5: Dashboard Enhancements
+    [ ] Tambah line chart trend simpanan
+    [ ] Tambah bar chart pinjaman vs angsuran
+    [ ] Add filter by date
+    [ ] Export dashboard to PDF
+    [ ] Responsive improvements
+    Priority: LOW
+    Effort: 6-8 jam
+
+[ ] DAY 6-7: Settings & Configuration
+    [ ] Create admin/settings/General.php
+    [ ] Konfigurasi: nama koperasi, logo
+    [ ] Konfigurasi: min/max nominal & tenor
+    [ ] Konfigurasi: bunga & denda percentage
+    [ ] Simpan ke config table
+    Priority: LOW
+    Effort: 4-5 jam
+
+═══════════════════════════════════════════════════════════════════════════════
+WEEK 6: TESTING & BUGFIX
+═══════════════════════════════════════════════════════════════════════════════
+
+[ ] DAY 1-2: Functional Testing
+    [ ] Test semua CRUD operations
+    [ ] Test report generation
+    [ ] Test notification triggers
+    [ ] Test permission checks
+    [ ] Test data exports
+    Effort: 8-10 jam
+
+[ ] DAY 3-4: Security Testing
+    [ ] SQL Injection testing
+    [ ] XSS attack testing
+    [ ] CSRF testing
+    [ ] Session security
+    [ ] Password handling
+    Effort: 8-10 jam
+
+[ ] DAY 5-6: Performance Testing
+    [ ] Load test dengan 10K records
+    [ ] Database query optimization
+    [ ] Cache implementation (optional)
+    [ ] Page load time check
+    [ ] N+1 query elimination
+    Effort: 8-10 jam
+
+[ ] DAY 7: Bugfix & Polish
+    [ ] Fix bugs yang ditemukan
+    [ ] UI/UX improvements
+    [ ] Documentation update
+    [ ] Final review
+    Effort: 6-8 jam
+
+═══════════════════════════════════════════════════════════════════════════════
+WEEK 7: DOCUMENTATION & DEPLOYMENT PREP
+═══════════════════════════════════════════════════════════════════════════════
+
+[ ] DAY 1-2: Documentation
+    [ ] Write README.md lengkap
+    [ ] Database schema documentation
+    [ ] API documentation (optional)
+    [ ] User guide
+    [ ] Administrator guide
+    [ ] Troubleshooting guide
+    Effort: 8-10 jam
+
+[ ] DAY 3-4: Deployment Preparation
+    [ ] Server setup & configuration
+    [ ] Database backup strategy
+    [ ] Environment variables setup
+    [ ] SSL/HTTPS configuration
+    [ ] Domain setup
+    Effort: 6-8 jam
+
+[ ] DAY 5-6: Backup & DR
+    [ ] Automated backup script
+    [ ] Restore procedure testing
+    [ ] Disaster recovery plan
+    [ ] Data migration plan (if any)
+    Effort: 6-8 jam
+
+[ ] DAY 7: Pre-launch Checklist
+    [ ] Security checklist review
+    [ ] Performance checklist review
+    [ ] Functionality checklist review
+    [ ] Documentation review
+    [ ] Training materials ready
+    Effort: 4-5 jam
+
+═══════════════════════════════════════════════════════════════════════════════
+PRIORITY 3 (OPTIONAL - If Time Permits)
+═══════════════════════════════════════════════════════════════════════════════
+
+[ ] Mobile App / PWA Version
+    [ ] Create service worker
+    [ ] Offline functionality
+    [ ] Push notifications
+    [ ] Responsive design improvements
+    Estimated effort: 3-4 minggu
+
+[ ] Framework Migration (Laravel)
+    [ ] Create new Laravel project
+    [ ] Migrate models & controllers
+    [ ] Migrate views with Blade
+    [ ] Setup routes & middleware
+    [ ] Test & deploy
+    Estimated effort: 4-6 minggu
+
+[ ] API Development
+    [ ] Create REST API endpoints
+    [ ] Authentication & authorization
+    [ ] API documentation
+    [ ] Rate limiting & security
+    Estimated effort: 3-4 minggu
+
+═══════════════════════════════════════════════════════════════════════════════
+RESOURCE ALLOCATION
+═══════════════════════════════════════════════════════════════════════════════
+
+RECOMMENDED TEAM:
+- Lead Developer: 1 person (lead + code review)
+- Frontend Developer: 1 person (UI/UX)
+- Backend Developer: 1-2 person (database, business logic)
+- QA/Tester: 1 person (full time testing)
+- DevOps/Infrastructure: 1 person (part time)
+
+TOTAL EFFORT: ~7-8 weeks for production-ready
+
+═══════════════════════════════════════════════════════════════════════════════
+RISK ASSESSMENT
+═══════════════════════════════════════════════════════════════════════════════
+
+HIGH RISK:
+- Security vulnerabilities if not fixed properly → Mitigation: Security audit
+- Data loss if backup not implemented → Mitigation: Backup system from day 1
+- Performance issues with large data → Mitigation: Early performance testing
+
+MEDIUM RISK:
+- Scope creep from additional requests → Mitigation: Strict requirements freeze
+- Team availability → Mitigation: Plan resources early
+- Integration issues → Mitigation: Integration testing in week 4-5
+
+LOW RISK:
+- UI/UX not meeting expectations → Mitigation: Early design review
+- Documentation incomplete → Mitigation: Write docs as you code
+
+═══════════════════════════════════════════════════════════════════════════════
+SUCCESS CRITERIA (GO-LIVE CHECKLIST)
+═══════════════════════════════════════════════════════════════════════════════
+
+✓ All Priority 1 items completed and tested
+✓ Security audit passed
+✓ Performance tested & optimized
+✓ Database backup running successfully
+✓ User documentation complete
+✓ Admin documentation complete
+✓ All bugs fixed (no critical/high priority open)
+✓ Performance baseline established
+✓ Monitoring setup complete
+✓ Rollback procedure documented & tested
+
+═══════════════════════════════════════════════════════════════════════════════
+MEETING & COMMUNICATION SCHEDULE
+═══════════════════════════════════════════════════════════════════════════════
+
+DAILY: Stand-up meeting (15 min)
+- What was done yesterday
+- What will be done today
+- Any blockers
+
+WEEKLY: Status review (1 hour)
+- Progress report
+- Sprint review
+- Issues & risks
+- Plan for next week
+
+BI-WEEKLY: Stakeholder demo
+- Show completed features
+- Get feedback
+- Adjust plan if needed
+
+═══════════════════════════════════════════════════════════════════════════════
+CONTINGENCY PLAN
+═══════════════════════════════════════════════════════════════════════════════
+
+IF BEHIND SCHEDULE:
+- Drop Priority 3 items
+- Extend timeline for Priority 2 items
+- Focus on MVP features
+
+IF MAJOR SECURITY ISSUE FOUND:
+- Stop all development
+- Fix security issue immediately
+- Re-test all related features
+- Update security procedures
+
+IF DATA LOSS HAPPENS:
+- Restore from latest backup
+- Identify cause of data loss
+- Implement prevention measures
+- Notify users if necessary
+
+═══════════════════════════════════════════════════════════════════════════════
+CONCLUSION
+═══════════════════════════════════════════════════════════════════════════════
+
+Timeline: 7-8 weeks for production-ready version
+Cost: Dependent on team size and location
+Maintenance: Plan for ongoing support & improvements
+
+Next Step: Schedule kickoff meeting to confirm team & resources
+Date: _______________
+Time: _______________
+Owner: _______________
+
+═══════════════════════════════════════════════════════════════════════════════

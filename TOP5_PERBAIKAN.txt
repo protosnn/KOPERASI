@@ -1,0 +1,250 @@
+QUICK START - TOP 5 PERBAIKAN UNTUK PRESENTASI
+══════════════════════════════════════════════════════════════════════════════════
+
+⏰ HANYA 7 HARI? Lakukan TOP 5 INI SAJA!
+─────────────────────────────────────────────────────────────────────────────────
+
+#1 ⭐⭐⭐ SETUP DEMO DATA (PALING PENTING!)
+═════════════════════════════════════════════
+
+WHY? Aplikasi akan terlihat KOSONG tanpa data. Sangat tidak impressive!
+
+ACTION - Jalankan SQL ini di phpMyAdmin:
+
+-- ANGGOTA
+INSERT INTO anggota (nama, alamat, nomor_identitas, nomor_telepon) VALUES
+('Budi Santoso', 'Jl. Merdeka 123', '1234567890123456', '08123456789'),
+('Siti Rahayu', 'Jl. Sudirman 456', '9876543210987654', '08987654321'),
+('Ahmad Wijaya', 'Jl. Gatot Subroto 789', '1111111111111111', '08111111111'),
+('Dewi Lestari', 'Jl. Diponegoro 321', '2222222222222222', '08222222222'),
+('Rudi Hartono', 'Jl. Ahmad Yani 654', '3333333333333333', '08333333333');
+
+-- PINJAMAN
+INSERT INTO pinjaman (anggota_id, jumlah_pinjaman, tenor, status, tanggal_pengajuan) VALUES
+(1, 10000000, 12, 'acc', NOW()),
+(2, 15000000, 18, 'pending', NOW()),
+(3, 5000000, 6, 'acc', DATE_SUB(NOW(), INTERVAL 30 DAY)),
+(4, 20000000, 24, 'acc', DATE_SUB(NOW(), INTERVAL 20 DAY)),
+(5, 8000000, 12, 'pending', NOW());
+
+-- SIMPANAN
+INSERT INTO simpanan (anggota_id, jenissimpanan_id, nominal, tanggal) VALUES
+(1, 1, 500000, NOW()),
+(1, 2, 100000, NOW()),
+(1, 3, 50000, NOW()),
+(2, 1, 500000, NOW()),
+(2, 2, 100000, NOW()),
+(2, 3, 75000, NOW()),
+(3, 1, 500000, DATE_SUB(NOW(), INTERVAL 10 DAY)),
+(3, 2, 100000, DATE_SUB(NOW(), INTERVAL 10 DAY)),
+(4, 1, 500000, DATE_SUB(NOW(), INTERVAL 5 DAY)),
+(4, 2, 100000, NOW()),
+(5, 3, 100000, NOW());
+
+-- ANGSURAN (untuk pinjaman)
+INSERT INTO angsuran (pinjaman_id, nominal, tgl_pelunasan, status) VALUES
+-- Pinjaman 1 (Budi) - 10juta, 12 bulan = 833.333/bulan, buat 3 bulan lunas, 9 belum
+(1, 833333, DATE_SUB(NOW(), INTERVAL 60 DAY), 'lunas'),
+(1, 833333, DATE_SUB(NOW(), INTERVAL 30 DAY), 'lunas'),
+(1, 833333, NOW(), 'lunas'),
+(1, 833334, DATE_ADD(NOW(), INTERVAL 30 DAY), 'belum lunas'),
+(1, 833333, DATE_ADD(NOW(), INTERVAL 60 DAY), 'belum lunas'),
+(1, 833333, DATE_ADD(NOW(), INTERVAL 90 DAY), 'belum lunas'),
+(1, 833333, DATE_ADD(NOW(), INTERVAL 120 DAY), 'belum lunas'),
+(1, 833333, DATE_ADD(NOW(), INTERVAL 150 DAY), 'belum lunas'),
+(1, 833333, DATE_ADD(NOW(), INTERVAL 180 DAY), 'belum lunas'),
+(1, 833333, DATE_ADD(NOW(), INTERVAL 210 DAY), 'belum lunas'),
+(1, 833333, DATE_ADD(NOW(), INTERVAL 240 DAY), 'belum lunas'),
+(1, 833333, DATE_ADD(NOW(), INTERVAL 270 DAY), 'belum lunas'),
+
+-- Pinjaman 3 (Ahmad) - 5juta, 6 bulan = 833.333/bulan, semua sudah lunas
+(3, 833334, DATE_SUB(NOW(), INTERVAL 150 DAY), 'lunas'),
+(3, 833333, DATE_SUB(NOW(), INTERVAL 120 DAY), 'lunas'),
+(3, 833333, DATE_SUB(NOW(), INTERVAL 90 DAY), 'lunas'),
+(3, 833333, DATE_SUB(NOW(), INTERVAL 60 DAY), 'lunas'),
+(3, 833333, DATE_SUB(NOW(), INTERVAL 30 DAY), 'lunas'),
+(3, 833333, NOW(), 'lunas'),
+
+-- Pinjaman 4 (Dewi) - 20juta, 24 bulan = 833.333/bulan
+(4, 833334, DATE_SUB(NOW(), INTERVAL 150 DAY), 'lunas'),
+(4, 833333, DATE_SUB(NOW(), INTERVAL 120 DAY), 'lunas'),
+(4, 833333, DATE_SUB(NOW(), INTERVAL 90 DAY), 'belum lunas'),
+(4, 833333, NOW(), 'belum lunas'),
+(4, 833333, DATE_ADD(NOW(), INTERVAL 30 DAY), 'belum lunas'),
+(4, 833333, DATE_ADD(NOW(), INTERVAL 60 DAY), 'belum lunas');
+
+TIME: 15 menit
+IMPACT: CRITICAL - Aplikasi langsung terlihat full & professional!
+
+─────────────────────────────────────────────────────────────────────────────────
+
+#2 ⭐⭐⭐ FIX PAGE TITLES (BRANDING)
+═════════════════════════════════════════════
+
+WHY? "Skydash Admin" di browser tab sangat generic dan unprofessional
+
+FILES TO FIX:
+- admin/dashboard.php
+- admin/anggota.php
+- admin/pinjaman/pinjaman.php
+- admin/pemasukan/simpanan.php
+- index.php
+
+SEARCH & REPLACE:
+
+Find: <title>Skydash Admin</title>
+Replace dengan:
+
+admin/dashboard.php:
+<title>Koperasi - Dashboard</title>
+
+admin/anggota.php:
+<title>Koperasi - Anggota</title>
+
+admin/pinjaman/pinjaman.php:
+<title>Koperasi - Pinjaman</title>
+
+admin/pemasukan/simpanan.php:
+<title>Koperasi - Simpanan</title>
+
+index.php:
+<title>Koperasi - Login</title>
+
+TIME: 15 menit
+IMPACT: HIGH - Terlihat branded & professional
+
+─────────────────────────────────────────────────────────────────────────────────
+
+#3 ⭐⭐⭐ ADD DELETE CONFIRMATION DIALOG
+═════════════════════════════════════════════
+
+WHY? User bisa hapus data tanpa sengaja. Confirmation membuat aplikasi terlihat professional!
+
+FILE: admin/anggota.php
+
+FIND semua delete link yang seperti ini:
+<a href="javascript:void(0);" onclick="if(confirm('...')) window.location.href='..."
+
+REPLACE dengan:
+
+<a href="javascript:void(0);" onclick="if(confirm('Apakah Anda yakin ingin menghapus anggota ini? Semua pinjaman dan simpanan akan ikut terhapus!')) window.location.href='../../proses/delete_anggota.php?id=<?php echo $row['id']; ?>'">
+
+FILE: admin/pinjaman/pinjaman.php
+
+FIND: onclick="if(confirm('Apakah Anda yakin ingin menolak pinjaman ini?')) window.location.href='../../proses/hapus_pinjaman.php?pinjaman_id=<?php echo $row['id_pinjaman']; ?>'"
+
+REPLACE dengan:
+
+onclick="if(confirm('Apakah Anda yakin ingin MENOLAK dan MENGHAPUS pinjaman ini?\\n\\nData angsuran akan ikut terhapus!\\n\\nTindakan ini TIDAK BISA dibatalkan!')) window.location.href='../../proses/hapus_pinjaman.php?pinjaman_id=<?php echo $row['id_pinjaman']; ?>'"
+
+TIME: 30 menit
+IMPACT: MEDIUM - Terlihat user-friendly & thoughtful
+
+─────────────────────────────────────────────────────────────────────────────────
+
+#4 ⭐⭐ HIDE THEME SETTINGS PANEL
+═════════════════════════════════════════════
+
+WHY? Settings panel di sidebar terlihat kurang profesional untuk presentasi
+
+FILE: admin/dashboard.php (dan semua halaman yang inherit dari template)
+
+FIND:
+<!-- partial:partials/_settings-panel.html -->
+<div class="theme-setting-wrapper">
+    <div id="settings-trigger"><i class="ti-settings"></i></div>
+    ... (semua code settings panel)
+</div>
+
+CHANGE dengan menambahkan style="display: none;":
+
+<div class="theme-setting-wrapper" style="display: none;">
+    <div id="settings-trigger"><i class="ti-settings"></i></div>
+    ... (tetap sama)
+</div>
+
+ATAU langsung comment out:
+
+<!--
+<!-- partial:partials/_settings-panel.html -->
+<div class="theme-setting-wrapper">
+    ...
+</div>
+-->
+
+TIME: 5 menit
+IMPACT: MEDIUM - Interface lebih clean
+
+─────────────────────────────────────────────────────────────────────────────────
+
+#5 ⭐⭐ RUN FULL TESTING
+═════════════════════════════════════════════
+
+WHY? Aplikasi harus error-free saat presentasi!
+
+TESTING CHECKLIST (15 items):
+
+[ ] LOGIN - Masuk dengan username/password
+[ ] DASHBOARD - Semua card terisi data
+[ ] CHART - Pie chart terlihat dengan benar
+[ ] ANGGOTA - List lengkap dengan 5+ data
+[ ] TAMBAH ANGGOTA - Form bisa submit
+[ ] EDIT ANGGOTA - Bisa edit & save
+[ ] DELETE ANGGOTA - Confirmation muncul
+[ ] PINJAMAN PENDING - Terlihat dengan status "pending"
+[ ] PINJAMAN ACC - Terlihat dengan status "acc"
+[ ] ACC BUTTON - Bisa ACC pinjaman pending
+[ ] LIHAT ANGSURAN - Modal muncul dengan data
+[ ] BAYAR ANGSURAN - Modal bayar muncul & status berubah
+[ ] SIMPANAN - List per anggota dengan breakdown
+[ ] TAMBAH SIMPANAN - Ketiga jenis bisa ditambah
+[ ] EXPORT - Excel/PDF/Print button works
+
+Fix untuk setiap yang FAIL sebelum presentasi!
+
+TIME: 2 jam
+IMPACT: CRITICAL - Semua harus berfungsi perfect!
+
+═════════════════════════════════════════════════════════════════════════════════
+📋 TAMBAHAN - JIKA MASIH ADA WAKTU (Optional)
+═════════════════════════════════════════════════════════════════════════════════
+
+#6 ADD TOOLTIPS DI BUTTON
+   FILE: semua .php dengan button action
+   ADD: title="Deskripsi action"
+   TIME: 1 jam
+
+#7 UPDATE FOOTER
+   FILE: layout/footer.php
+   ADD: Nama koperasi, copyright, contact
+   TIME: 30 menit
+
+#8 IMPROVE MODAL FONT SIZE
+   FILE: admin/dashboard.php & admin/pinjaman/pinjaman.php
+   ADD CSS: font-size: 16px; di modal
+   TIME: 30 menit
+
+═════════════════════════════════════════════════════════════════════════════════
+🎯 DONE? CHECKLIST FINAL
+═════════════════════════════════════════════════════════════════════════════════
+
+[ ] Demo data sudah insert
+[ ] Page titles sudah fix
+[ ] Delete confirmations sudah add
+[ ] Settings panel sudah hide
+[ ] Testing checklist 100% passed
+[ ] No errors di browser console
+[ ] Responsive tested (desktop, tablet, mobile)
+[ ] Backup database & files
+[ ] Practice presentation 2-3x
+[ ] Set alarm untuk hari presentasi
+[ ] Get good sleep malam sebelumnya!
+
+═════════════════════════════════════════════════════════════════════════════════
+
+PRESENTASI DIMULAI? ENJOY & SHOW CONFIDENCE! 💪
+
+Ingat: Aplikasi sudah FUNCTIONAL & IMPRESSIVE!
+Tinggal POLISH & PRESENT dengan PERCAYA DIRI! 🚀
+
+═════════════════════════════════════════════════════════════════════════════════
