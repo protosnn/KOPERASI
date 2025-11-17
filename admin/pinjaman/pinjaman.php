@@ -102,6 +102,28 @@
               <div class="card-body">
                 <?php
                 require_once '../../koneksi.php';
+                
+                // Tampilkan pesan sukses atau error jika ada
+                if(isset($_SESSION['success'])) {
+                  echo '<div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="ti-check mr-2"></i>' . $_SESSION['success'] . '
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>';
+                  unset($_SESSION['success']);
+                }
+                
+                if(isset($_SESSION['error'])) {
+                  echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="ti-alert mr-2"></i>' . $_SESSION['error'] . '
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>';
+                  unset($_SESSION['error']);
+                }
+                
                 $query_total = "SELECT COUNT(*) as total, SUM(jumlah_pinjaman) as total_pinjaman FROM pinjaman WHERE status='aktif'";
                 $result_total = mysqli_query($koneksi, $query_total);
                 $data_total = mysqli_fetch_assoc($result_total);
@@ -289,7 +311,7 @@
                                   <i class="ti-check"></i>
                                 </a>
                                 <a href="javascript:void(0);" 
-                                   onclick="if(confirm('Apakah Anda yakin ingin menolak pinjaman ini?')) window.location.href='../../proses/pinjaman_acc.php?action=tolak&pinjaman_id=<?php echo $row['id_pinjaman']; ?>'"
+                                   onclick="if(confirm('Apakah Anda yakin ingin menolak pinjaman ini?')) window.location.href='../../proses/hapus_pinjaman.php?pinjaman_id=<?php echo $row['id_pinjaman']; ?>'"
                                    class="btn btn-danger btn-sm" title="Tolak Pinjaman">
                                   <i class="ti-close"></i>
                                 </a>
@@ -303,141 +325,7 @@
                                         title="Lihat Angsuran">
                                   <i class="ti-money"></i>
                                 </button>
-
-                                <!-- Modal Angsuran untuk ID <?php echo $row['id_pinjaman']; ?> -->
-                                <div class="modal fade" id="modalAngsuran<?php echo $row['id_pinjaman']; ?>" tabindex="-1" role="dialog" aria-hidden="true">
-                                  <div class="modal-dialog modal-lg" role="document">
-                                    <div class="modal-content">
-                                      <div class="modal-header">
-                                        <h5 class="modal-title"><i class="ti-money mr-2"></i>Detail Angsuran Pinjaman</h5>
-                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                          <span aria-hidden="true">&times;</span>
-                                        </button>
-                                      </div>
-                                      <div class="modal-body">
-                                        <?php
-                                        // Query untuk mendapatkan data angsuran
-                                        $query_angsuran = "SELECT id, nominal, tgl_pelunasan, status 
-                                                         FROM angsuran 
-                                                         WHERE pinjaman_id = ? 
-                                                         ORDER BY tgl_pelunasan ASC";
-                                        $stmt = mysqli_prepare($koneksi, $query_angsuran);
-                                        mysqli_stmt_bind_param($stmt, "i", $row['id_pinjaman']);
-                                        mysqli_stmt_execute($stmt);
-                                        $result_angsuran = mysqli_stmt_get_result($stmt);
-                                        
-                                        // Hitung total angsuran
-                                        $total_angsuran = 0;
-                                        $angsuran_list = [];
-                                        while($ang = mysqli_fetch_assoc($result_angsuran)) {
-                                            $total_angsuran += $ang['nominal'];
-                                            $angsuran_list[] = $ang;
-                                        }
-                                        
-                                        $sisa_angsuran = $row['jumlah_pinjaman'] - $total_angsuran;
-                                        ?>
-                                        
-                                        <div class="row mb-4">
-                                          <div class="col-md-6">
-                                            <div class="card bg-light">
-                                              <div class="card-body">
-                                                <h6 class="card-title text-primary">Informasi Pinjaman</h6>
-                                                <table class="table table-borderless table-sm mb-0">
-                                                  <tr>
-                                                    <td style="width: 45%">Total Pinjaman</td>
-                                                    <td style="width: 5%">:</td>
-                                                    <td style="width: 50%">Rp <?php echo number_format($row['jumlah_pinjaman'], 0, ',', '.'); ?></td>
-                                                  </tr>
-                                                  <tr>
-                                                    <td>Total Angsuran</td>
-                                                    <td>:</td>
-                                                    <td>Rp <?php echo number_format($total_angsuran, 0, ',', '.'); ?></td>
-                                                  </tr>
-                                                </table>
-                                              </div>
-                                            </div>
-                                          </div>
-                                          <div class="col-md-6">
-                                            <div class="card bg-light">
-                                              <div class="card-body">
-                                                <h6 class="card-title text-primary">Status Pembayaran</h6>
-                                                <table class="table table-borderless table-sm mb-0">
-                                                  <tr>
-                                                    <td style="width: 45%">Sisa Angsuran</td>
-                                                    <td style="width: 5%">:</td>
-                                                    <td style="width: 50%">Rp <?php echo number_format($sisa_angsuran, 0, ',', '.'); ?></td>
-                                                  </tr>
-                                                  <tr>
-                                                    <td>Status</td>
-                                                    <td>:</td>
-                                                    <td>
-                                                      <?php if($sisa_angsuran <= 0): ?>
-                                                        <span class="badge badge-success">Lunas</span>
-                                                      <?php else: ?>
-                                                        <span class="badge badge-info">Aktif</span>
-                                                      <?php endif; ?>
-                                                    </td>
-                                                  </tr>
-                                                </table>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </div>
-                                        
-                                        <div class="card">
-                                          <div class="card-body">
-                                            <h6 class="card-title text-primary mb-4">Riwayat Angsuran</h6>
-                                            <div class="table-responsive">
-                                              <table class="table table-striped table-bordered">
-                                                <thead>
-                                                  <tr class="bg-light">
-                                                    <th style="width: 10%">No</th>
-                                                    <th style="width: 30%">Tanggal Bayar</th>
-                                                    <th style="width: 30%">Jumlah Bayar</th>
-                                                    <th style="width: 30%">Status</th>
-                                                  </tr>
-                                                </thead>
-                                                <tbody>
-                                                  <?php if(empty($angsuran_list)): ?>
-                                                    <tr>
-                                                      <td colspan="4" class="text-center">Belum ada data angsuran</td>
-                                                    </tr>
-                                                  <?php else: ?>
-                                                    <?php foreach($angsuran_list as $index => $angsuran): ?>
-                                                      <tr>
-                                                        <td><?php echo $index + 1; ?></td>
-                                                        <td><?php echo $angsuran['tgl_pelunasan'] ? date('d/m/Y', strtotime($angsuran['tgl_pelunasan'])) : '-'; ?></td>
-                                                        <td>Rp <?php echo number_format($angsuran['nominal'], 0, ',', '.'); ?></td>
-                                                        <td>
-                                                          <span class="badge <?php echo $angsuran['status'] == 'Lunas' ? 'badge-success' : 'badge-warning'; ?>">
-                                                            <?php echo $angsuran['status'] ?: 'Belum Lunas'; ?>
-                                                          </span>
-                                                        </td>
-                                                      </tr>
-                                                    <?php endforeach; ?>
-                                                  <?php endif; ?>
-                                                </tbody>
-                                              </table>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                      <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                                          <i class="ti-close mr-2"></i>Tutup
-                                        </button>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
                               <?php endif; ?>
-                              
-                              <button type="button" 
-                                      class="btn btn-info btn-sm" 
-                                      onclick="window.location.href='detail_pinjaman.php?id=<?php echo $row['id_pinjaman']; ?>'"
-                                      title="Detail Pinjaman">
-                                <i class="ti-eye"></i>
-                              </button>
                             </div>
                           </td>
                         </tr>
@@ -445,6 +333,254 @@
                       </tbody>
                     </table>
                   </div>
+
+                  <!-- Render semua modal di luar tabel (valid DOM structure) -->
+                  <?php
+                    // Re-fetch data untuk render modals
+                    $query_modals = "SELECT
+                              p.id AS id_pinjaman,
+                              a.nama AS nama_anggota,
+                              p.jumlah_pinjaman,
+                              p.tenor,
+                              p.status,
+                              p.tanggal_pengajuan,
+                              p.tanggal_acc,
+                              DATE_ADD(p.tanggal_pengajuan, INTERVAL p.tenor MONTH) AS tanggal_jatuh_tempo,
+                              CASE
+                                  WHEN p.status = 'acc' AND CURDATE() > DATE_ADD(p.tanggal_pengajuan, INTERVAL p.tenor MONTH) 
+                                      THEN 'pending'
+                                  ELSE p.status
+                              END AS status_aktual
+                          FROM pinjaman p
+                          JOIN anggota a ON p.anggota_id = a.id
+                          WHERE p.status = 'acc'
+                          ORDER BY p.tanggal_pengajuan DESC";
+
+                    $result_modals = mysqli_query($koneksi, $query_modals);
+                    while($row_modal = mysqli_fetch_assoc($result_modals)) {
+                      $id_pinjaman = $row_modal['id_pinjaman'];
+                      $jumlah_pinjaman = $row_modal['jumlah_pinjaman'];
+                      
+                      // Query angsuran untuk modal ini
+                      $query_angsuran = "SELECT id, nominal, tgl_pelunasan, status 
+                                       FROM angsuran 
+                                       WHERE pinjaman_id = ? 
+                                       ORDER BY tgl_pelunasan ASC";
+                      $stmt = mysqli_prepare($koneksi, $query_angsuran);
+                      mysqli_stmt_bind_param($stmt, "i", $id_pinjaman);
+                      mysqli_stmt_execute($stmt);
+                      $result_angsuran = mysqli_stmt_get_result($stmt);
+                      
+                      // Hitung total angsuran
+                      $total_angsuran = 0;
+                      $angsuran_list = [];
+                      $jumlah_angsuran_belum_lunas = 0;
+                      while($ang = mysqli_fetch_assoc($result_angsuran)) {
+                          $total_angsuran += $ang['nominal'];
+                          $angsuran_list[] = $ang;
+                          // Hitung angsuran yang belum lunas (case-insensitive)
+                          if(strtolower($ang['status']) != 'lunas') {
+                              $jumlah_angsuran_belum_lunas++;
+                          }
+                      }
+                      mysqli_stmt_close($stmt);
+                      
+                      $sisa_angsuran = $jumlah_pinjaman - $total_angsuran;
+                      $total_angsuran_count = count($angsuran_list);
+                  ?>
+                  <!-- Modal Angsuran untuk ID <?php echo $id_pinjaman; ?> -->
+                  <div class="modal fade" id="modalAngsuran<?php echo $id_pinjaman; ?>" tabindex="-1" role="dialog" aria-hidden="true">
+                    <div class="modal-dialog modal-lg" role="document">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h5 class="modal-title"><i class="ti-money mr-2"></i>Detail Angsuran Pinjaman</h5>
+                          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                          </button>
+                        </div>
+                        <div class="modal-body">
+                          <div class="row mb-4">
+                            <div class="col-md-6">
+                              <div class="card bg-light">
+                                <div class="card-body">
+                                  <h6 class="card-title text-primary">Informasi Pinjaman</h6>
+                                  <table class="table table-borderless table-sm mb-0">
+                                    <tr>
+                                      <td style="width: 45%">Total Pinjaman</td>
+                                      <td style="width: 5%">:</td>
+                                      <td style="width: 50%">Rp <?php echo number_format($jumlah_pinjaman, 0, ',', '.'); ?></td>
+                                    </tr>
+                                    <tr>
+                                      <td>Total Angsuran</td>
+                                      <td>:</td>
+                                      <td>Rp <?php echo number_format($total_angsuran, 0, ',', '.'); ?></td>
+                                    </tr>
+                                  </table>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <div class="card bg-light">
+                                <div class="card-body">
+                                  <h6 class="card-title text-primary">Status Pembayaran</h6>
+                                  <table class="table table-borderless table-sm mb-0">
+                                    <tr>
+                                      <td style="width: 45%">Sisa Pembayaran</td>
+                                      <td style="width: 5%">:</td>
+                                      <td style="width: 50%">
+                                        <strong><?php echo $jumlah_angsuran_belum_lunas; ?> dari <?php echo $total_angsuran_count; ?></strong> Angsuran
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td>Sisa Nominal</td>
+                                      <td>:</td>
+                                      <td>Rp <?php echo number_format($sisa_angsuran, 0, ',', '.'); ?></td>
+                                    </tr>
+                                    <tr>
+                                      <td>Status</td>
+                                      <td>:</td>
+                                      <td>
+                                        <?php if($sisa_angsuran <= 0): ?>
+                                          <span class="badge badge-success">Lunas</span>
+                                        <?php else: ?>
+                                          <span class="badge badge-info">Aktif</span>
+                                        <?php endif; ?>
+                                      </td>
+                                    </tr>
+                                  </table>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div class="card">
+                            <div class="card-body">
+                              <h6 class="card-title text-primary mb-4">Riwayat Angsuran</h6>
+                              <div class="table-responsive">
+                                <table class="table table-striped table-bordered">
+                                  <thead>
+                                    <tr class="bg-light">
+                                      <th style="width: 8%">No</th>
+                                      <th style="width: 25%">Tanggal Bayar</th>
+                                      <th style="width: 25%">Jumlah Bayar</th>
+                                      <th style="width: 22%">Status</th>
+                                      <th style="width: 20%">Aksi</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <?php if(empty($angsuran_list)): ?>
+                                      <tr>
+                                        <td colspan="4" class="text-center">Belum ada data angsuran</td>
+                                      </tr>
+                                    <?php else: ?>
+                                      <?php foreach($angsuran_list as $index => $angsuran): ?>
+                                        <tr>
+                                          <td><?php echo $index + 1; ?></td>
+                                          <td><?php echo $angsuran['tgl_pelunasan'] ? date('d/m/Y', strtotime($angsuran['tgl_pelunasan'])) : '-'; ?></td>
+                                          <td>Rp <?php echo number_format($angsuran['nominal'], 0, ',', '.'); ?></td>
+                                          <td>
+                                            <?php 
+                                              $is_lunas = (strtolower($angsuran['status']) == 'lunas');
+                                              $badge_class = $is_lunas ? 'badge-success' : 'badge-warning';
+                                              $status_text = $is_lunas ? 'Lunas' : 'Belum Lunas';
+                                            ?>
+                                            <span class="badge <?php echo $badge_class; ?>" style="font-size: 12px; padding: 6px 10px;">
+                                              <?php echo $status_text; ?>
+                                            </span>
+                                          </td>
+                                          <td>
+                                            <?php if(!$is_lunas): ?>
+                                              <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#modalBayarAngsuran<?php echo $angsuran['id']; ?>" title="Bayar Angsuran">
+                                                <i class="ti-money"></i> Bayar
+                                              </button>
+                                            <?php else: ?>
+                                              <button type="button" class="btn btn-sm btn-secondary disabled" disabled title="Angsuran Sudah Lunas">
+                                                <i class="ti-check"></i> Lunas
+                                              </button>
+                                            <?php endif; ?>
+                                          </td>
+                                        </tr>
+                                      <?php endforeach; ?>
+                                    <?php endif; ?>
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                            <i class="ti-close mr-2"></i>Tutup
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Modal Pembayaran Angsuran untuk setiap angsuran -->
+                  <?php 
+                    foreach($angsuran_list as $angsuran): 
+                      $angsuran_id = $angsuran['id'];
+                      $angsuran_nominal = $angsuran['nominal'];
+                      $angsuran_status = $angsuran['status'];
+                  ?>
+                    <div class="modal fade" id="modalBayarAngsuran<?php echo $angsuran_id; ?>" tabindex="-1" role="dialog" aria-hidden="true">
+                      <div class="modal-dialog modal-sm" role="document">
+                        <div class="modal-content">
+                          <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title"><i class="ti-money mr-2"></i>Pembayaran Angsuran</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                              <span aria-hidden="true">&times;</span>
+                            </button>
+                          </div>
+                          <form action="../../proses/proses_bayar_angsuran.php" method="POST">
+                            <div class="modal-body">
+                              <input type="hidden" name="angsuran_id" value="<?php echo $angsuran_id; ?>">
+                              <input type="hidden" name="pinjaman_id" value="<?php echo $id_pinjaman; ?>">
+                              
+                              <div class="form-group">
+                                <label for="nominal_bayar<?php echo $angsuran_id; ?>">Jumlah Dibayar</label>
+                                <div class="input-group">
+                                  <div class="input-group-prepend">
+                                    <span class="input-group-text">Rp</span>
+                                  </div>
+                                  <input type="text" 
+                                         class="form-control nominal-input" 
+                                         id="nominal_bayar<?php echo $angsuran_id; ?>" 
+                                         name="nominal_bayar" 
+                                         placeholder="0" 
+                                         required>
+                                </div>
+                                <small class="form-text text-muted">Jumlah angsuran: Rp <?php echo number_format($angsuran_nominal, 0, ',', '.'); ?></small>
+                              </div>
+
+                              <div class="form-group">
+                                <label for="tgl_bayar<?php echo $angsuran_id; ?>">Tanggal Pembayaran</label>
+                                <input type="date" 
+                                       class="form-control" 
+                                       id="tgl_bayar<?php echo $angsuran_id; ?>" 
+                                       name="tgl_bayar" 
+                                       value="<?php echo date('Y-m-d'); ?>" 
+                                       required>
+                              </div>
+                            </div>
+                            <div class="modal-footer">
+                              <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                <i class="ti-close mr-2"></i>Batal
+                              </button>
+                              <button type="submit" class="btn btn-primary">
+                                <i class="ti-check mr-2"></i>Simpan Pembayaran
+                              </button>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                  <?php endforeach; ?>
+                  <!-- End modal pembayaran angsuran -->
+
+                  <?php } ?>
+                  <!-- End modals -->
                   
                   <script>
                     function accPinjaman(id) {
@@ -457,6 +593,23 @@
                         window.location.href = 'proses_tolak_pinjam.php?id=' + id;
                       }
                     }
+
+                    // Format nominal input dengan Rupiah
+                    document.querySelectorAll('.nominal-input').forEach(input => {
+                      input.addEventListener('keyup', function(e) {
+                        let value = this.value.replace(/[^0-9]/g, '');
+                        if(value) {
+                          this.value = parseInt(value).toLocaleString('id-ID');
+                        }
+                      });
+
+                      input.addEventListener('blur', function() {
+                        let value = this.value.replace(/[^0-9]/g, '');
+                        if(value) {
+                          this.value = parseInt(value).toLocaleString('id-ID');
+                        }
+                      });
+                    });
                   </script>
                 </div>
               </div>
@@ -565,10 +718,11 @@
   <!-- container-scroller -->
 
   <!-- plugins:js -->
+  <!-- Load jQuery first (required by Bootstrap JS in vendor bundle) -->
+  <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
   <script src="../../template2/vendors/js/vendor.bundle.base.js"></script>
   <!-- endinject -->
   <!-- Plugin js for this page -->
-  <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
   <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
