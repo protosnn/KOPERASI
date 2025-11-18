@@ -1,0 +1,540 @@
+═══════════════════════════════════════════════════════════════════════════════════
+                    📄 IMPLEMENTASI HALAMAN 404 NOT FOUND
+                   Dokumentasi & Panduan Penggunaan Lengkap
+═══════════════════════════════════════════════════════════════════════════════════
+
+🎯 OVERVIEW
+═════════════════════════════════════════════════════════════════════════════════
+
+Saya telah membuat implementasi 404 Not Found yang komprehensif untuk aplikasi 
+Koperasi Anda. Halaman ini akan muncul ketika user mencoba mengakses:
+
+✓ Halaman yang tidak ada
+✓ URL yang salah/invalid
+✓ File yang dihapus
+✓ Link yang sudah tidak berlaku
+
+═════════════════════════════════════════════════════════════════════════════════
+📁 FILES YANG DIBUAT
+═════════════════════════════════════════════════════════════════════════════════
+
+1. admin/404.php (NEW)
+   └─ Halaman 404 dengan design professional
+   └─ Responsive design (mobile-friendly)
+   └─ Navigation links ke halaman utama
+   └─ Error logging capability
+
+2. proses/error_handler.php (NEW)
+   └─ Error handling functions
+   └─ 404 error management
+   └─ Session-based error tracking
+   └─ Custom error messages
+
+3. .htaccess (NEW)
+   └─ Apache configuration
+   └─ URL rewriting rules
+   └─ Custom error document mapping
+   └─ Security & caching headers
+
+═════════════════════════════════════════════════════════════════════════════════
+🎨 FITUR HALAMAN 404
+═════════════════════════════════════════════════════════════════════════════════
+
+VISUAL FEATURES:
+✅ Professional gradient background (purple theme)
+✅ Large "404" error code display
+✅ Animated slide-up entrance
+✅ Clear error message dalam Bahasa Indonesia
+✅ Responsive design (works on mobile & desktop)
+✅ Error details (URL yang diminta, waktu)
+
+NAVIGATION FEATURES:
+✅ Button "Kembali ke Login" (redirect ke login page)
+✅ Button "Kembali" (browser back history)
+✅ Quick navigation links ke dashboard, anggota, pinjaman, simpanan
+✅ Contact information untuk support
+
+ERROR LOGGING:
+✅ Captures requested URL
+✅ Timestamp error
+✅ User IP address (optional)
+✅ Browser/User agent info (optional)
+✅ Dapat di-extend untuk send email ke admin
+
+═════════════════════════════════════════════════════════════════════════════════
+🔧 CARA MENGGUNAKAN - 3 METODE
+═════════════════════════════════════════════════════════════════════════════════
+
+METODE 1: AUTOMATIC (Apache/nginx - RECOMMENDED)
+──────────────────────────────────────────────────
+
+Apache (Jika menggunakan .htaccess):
+1. File .htaccess sudah ada di root folder: /koperasi/.htaccess
+2. Konfigurasi otomatis mapping:
+   - 404 errors → /koperasi/admin/404.php
+   - 403 errors → /koperasi/admin/404.php?error=403
+   - 500 errors → /koperasi/admin/404.php?error=500
+
+Cara aktivasi:
+1. Pastikan mod_rewrite dan mod_headers diaktifkan di Apache
+   - Di php.ini atau httpd.conf
+   - Atau hubungi hosting provider
+
+2. Restart Apache
+3. Done! 404 error akan otomatis show halaman custom
+
+Testing:
+- Akses URL yang tidak ada: http://localhost/koperasi/tidak-ada-halaman.php
+- Seharusnya tampil halaman 404
+
+───────────────────────────────────────────────────────────────────────────────
+
+METODE 2: MANUAL REDIRECT (PHP Code - FLEXIBLE)
+────────────────────────────────────────────────
+
+Cara 1: Di file yang ingin check halaman:
+
+```php
+<?php
+include '../../proses/error_handler.php';
+
+// Check jika halaman valid
+if (!is_valid_page($_GET['page'] ?? '')) {
+    show_404($_GET['page'] ?? '', 'Halaman tidak valid');
+    exit();
+}
+
+// ... rest of your code
+?>
+```
+
+Cara 2: Custom error handling untuk specific case:
+
+```php
+<?php
+include '../../proses/error_handler.php';
+
+// Contoh: Check jika anggota tidak ada
+$id = $_GET['id'] ?? '';
+if (!$id || !is_numeric($id)) {
+    show_404('anggota', 'ID anggota tidak valid');
+}
+
+// Query database
+$result = mysqli_query($koneksi, "SELECT * FROM anggota WHERE id = $id");
+if (!$result || mysqli_num_rows($result) == 0) {
+    show_404('anggota', 'Anggota tidak ditemukan');
+}
+
+// ... rest of your code
+?>
+```
+
+───────────────────────────────────────────────────────────────────────────────
+
+METODE 3: HEADER REDIRECT (SIMPLE)
+──────────────────────────────────
+
+Untuk quick redirect tanpa processing:
+
+```php
+<?php
+// Jika halaman tidak ada, langsung redirect ke 404
+header('Location: /koperasi/admin/404.php');
+exit();
+```
+
+═════════════════════════════════════════════════════════════════════════════════
+💻 CONTOH IMPLEMENTASI - REAL USE CASES
+═════════════════════════════════════════════════════════════════════════════════
+
+USE CASE 1: Link Anggota yang Invalid
+──────────────────────────────────────
+
+File: admin/anggota.php
+
+```php
+<?php
+include '../cek_login.php';
+include '../proses/error_handler.php';
+
+// Check jika ada parameter edit
+if (isset($_GET['edit'])) {
+    $id = $_GET['edit'];
+    
+    // Validate ID
+    if (!is_numeric($id)) {
+        show_404('anggota', 'ID anggota tidak valid');
+    }
+    
+    // Check jika anggota ada di database
+    $query = "SELECT * FROM anggota WHERE id = ?";
+    $stmt = mysqli_prepare($koneksi, $query);
+    mysqli_stmt_bind_param($stmt, "i", $id);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    
+    if (mysqli_num_rows($result) == 0) {
+        show_404('anggota', 'Anggota dengan ID ' . $id . ' tidak ditemukan');
+    }
+}
+
+// ... rest of code
+?>
+```
+
+USE CASE 2: Page Navigation Error
+──────────────────────────────────
+
+File: admin/dashboard.php
+
+```php
+<?php
+include '../cek_login.php';
+include '../proses/error_handler.php';
+
+// Check jika ada parameter page
+if (isset($_GET['page'])) {
+    $valid_pages = ['overview', 'analytics', 'reports'];
+    
+    if (!in_array($_GET['page'], $valid_pages)) {
+        redirect_with_error(
+            'dashboard.php',
+            'Halaman "' . $_GET['page'] . '" tidak ditemukan'
+        );
+    }
+}
+
+// ... rest of code
+?>
+```
+
+USE CASE 3: API Endpoint Not Found
+──────────────────────────────────
+
+File: proses/api_handler.php
+
+```php
+<?php
+include '../proses/error_handler.php';
+
+$action = $_GET['action'] ?? '';
+$valid_actions = ['get_anggota', 'save_pinjaman', 'update_simpanan'];
+
+if (!in_array($action, $valid_actions)) {
+    http_response_code(404);
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'API endpoint tidak ditemukan',
+        'requested' => $action
+    ]);
+    exit();
+}
+
+// ... process action
+?>
+```
+
+═════════════════════════════════════════════════════════════════════════════════
+🎯 IMPLEMENTASI STEP-BY-STEP
+═════════════════════════════════════════════════════════════════════════════════
+
+STEP 1: Include Error Handler (Optional tapi Recommended)
+────────────────────────────────────────────────────────
+
+Di top of each admin file yang critical (dashboard.php, anggota.php, etc):
+
+```php
+<?php
+// ... existing includes
+include '../proses/error_handler.php';
+
+// ... rest of your code
+?>
+```
+
+STEP 2: Use Error Handler Functions
+───────────────────────────────────
+
+Setelah include error_handler.php, Anda bisa gunakan functions:
+
+```php
+// Show 404 error
+show_404('page_name', 'Optional reason');
+
+// Redirect dengan error message
+redirect_with_error('admin/dashboard.php', 'Anggota tidak ditemukan');
+
+// Redirect dengan success message
+redirect_with_success('admin/anggota.php', 'Data anggota berhasil disimpan');
+
+// Check jika halaman valid
+if (!is_valid_page($page_name)) {
+    // handle error
+}
+```
+
+STEP 3: Configure Apache (If using .htaccess)
+──────────────────────────────────────────────
+
+1. .htaccess sudah ada di root folder
+2. Check jika enabled di Apache:
+   - Ask hosting provider jika mod_rewrite aktif
+   - Atau check httpd.conf
+
+3. Test dengan akses URL invalid:
+   http://localhost/koperasi/test-404
+
+STEP 4: Test Implementation
+───────────────────────────
+
+Test scenarios:
+
+✓ Test 1: Akses file yang tidak ada
+  URL: http://localhost/koperasi/tidak-ada-halaman.php
+  Expected: 404 page muncul
+
+✓ Test 2: Akses halaman dengan invalid parameter
+  URL: http://localhost/koperasi/admin/anggota.php?edit=999999
+  Expected: 404 page (jika edit ID tidak ada di database)
+
+✓ Test 3: Test dari berbagai devices
+  - Desktop browser
+  - Mobile browser
+  Expected: Responsive design works
+
+✓ Test 4: Test navigation links
+  - Click "Kembali ke Login"
+  - Click "Kembali"
+  - Click "Dashboard" link
+  Expected: Semua link bekerja
+
+═════════════════════════════════════════════════════════════════════════════════
+📊 ERROR LOGGING & MONITORING
+═════════════════════════════════════════════════════════════════════════════════
+
+Optional: Store error logs di database
+
+File: proses/log_error.php (NEW - OPTIONAL)
+
+```php
+<?php
+session_start();
+include '../koneksi.php';
+
+// Get error dari session
+$error_data = $_SESSION['error_404'] ?? null;
+
+if ($error_data) {
+    // Store ke database (jika ada table error_logs)
+    $query = "INSERT INTO error_logs 
+              (error_type, page, reason, timestamp, ip_address, user_agent) 
+              VALUES (?, ?, ?, ?, ?, ?)";
+    
+    $stmt = mysqli_prepare($koneksi, $query);
+    mysqli_stmt_bind_param(
+        $stmt, 
+        "ssssss",
+        'ERROR_404',
+        $error_data['page'],
+        $error_data['reason'],
+        $error_data['timestamp'],
+        $error_data['ip'],
+        $error_data['user_agent']
+    );
+    mysqli_stmt_execute($stmt);
+    
+    // Optional: Send email to admin
+    // email_admin_about_error($error_data);
+}
+
+?>
+```
+
+Optional: Display error logs di admin panel
+
+File: admin/error_logs.php
+
+```php
+<?php
+include 'cek_login.php';
+
+$query = "SELECT * FROM error_logs ORDER BY timestamp DESC LIMIT 100";
+$result = mysqli_query($koneksi, $query);
+
+echo '<table class="table">';
+echo '<thead><tr>
+        <th>Waktu</th>
+        <th>Halaman</th>
+        <th>Alasan</th>
+        <th>IP Address</th>
+       </tr></thead>';
+echo '<tbody>';
+
+while ($row = mysqli_fetch_assoc($result)) {
+    echo '<tr>';
+    echo '<td>' . $row['timestamp'] . '</td>';
+    echo '<td>' . $row['page'] . '</td>';
+    echo '<td>' . $row['reason'] . '</td>';
+    echo '<td>' . $row['ip_address'] . '</td>';
+    echo '</tr>';
+}
+
+echo '</tbody>';
+echo '</table>';
+?>
+```
+
+═════════════════════════════════════════════════════════════════════════════════
+🎨 CUSTOMIZATION - CARA MENGUBAH HALAMAN 404
+═════════════════════════════════════════════════════════════════════════════════
+
+Untuk mengubah tampilan 404 page:
+
+1. WARNA BACKGROUND:
+   File: admin/404.php
+   Find: background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+   Change warna hex sesuai preferensi
+
+2. ICON/EMOJI:
+   Find: <i class="ti-alert"></i>
+   Ganti dengan icon lain dari Themify Icons
+   Atau gunakan emoji: 😵‍💫, ⚠️, 🔍, etc
+
+3. BUTTON TEXT:
+   Find: "Kembali ke Login", "Kembali"
+   Ubah sesuai kebutuhan
+
+4. NAVIGATION LINKS:
+   Find: suggestion-links section
+   Tambah/hapus links sesuai kebutuhan
+
+5. ERROR MESSAGE:
+   Find: "Halaman Tidak Ditemukan"
+   Ubah message sesuai keinginan
+
+═════════════════════════════════════════════════════════════════════════════════
+📱 RESPONSIVE DESIGN
+═════════════════════════════════════════════════════════════════════════════════
+
+Halaman 404 sudah fully responsive:
+
+MOBILE (< 768px):
+✓ Font size adjust
+✓ Padding berkurang untuk mobile
+✓ Buttons stack vertical
+✓ Navigation grid menjadi single column
+✓ Readable di semua screen size
+
+TABLET (768px - 1024px):
+✓ Layout normal
+✓ All features visible
+
+DESKTOP (> 1024px):
+✓ Full featured
+✓ Optimal spacing
+✓ All navigation visible
+
+═════════════════════════════════════════════════════════════════════════════════
+✅ TESTING CHECKLIST
+═════════════════════════════════════════════════════════════════════════════════
+
+Sebelum go-live, pastikan:
+
+[ ] 404 page tampil saat akses invalid URL
+[ ] 404 page tampil saat invalid parameter
+[ ] Semua navigation buttons bekerja
+[ ] Design responsive di mobile
+[ ] Error details menampilkan URL yang benar
+[ ] Timestamp menampilkan waktu yang akurat
+[ ] Session data tersimpan (jika using error logging)
+[ ] No console errors di browser developer tools
+[ ] Page load time < 2 seconds
+[ ] Accessible dari semua browser (Chrome, Firefox, Edge, Safari)
+[ ] Mobile browser compatibility tested
+[ ] Links ke dashboard, anggota, pinjaman bekerja
+[ ] "Kembali ke Login" redirect ke login page
+[ ] "Kembali" button bekerja (history.back())
+
+═════════════════════════════════════════════════════════════════════════════════
+🐛 TROUBLESHOOTING
+═════════════════════════════════════════════════════════════════════════════════
+
+MASALAH 1: 404 page tidak tampil, malah error message
+─────────────────────────────────────────────────────
+
+Solusi:
+1. Check jika PHP errors di-enable
+2. Check jika file admin/404.php sudah ada
+3. Check jika path di .htaccess benar
+4. Try manual redirect: header('Location: /koperasi/admin/404.php');
+
+MASALAH 2: .htaccess tidak bekerja
+───────────────────────────────────
+
+Solusi:
+1. Check jika AllowOverride On di Apache config
+2. Ask hosting provider jika mod_rewrite enabled
+3. Alternative: use Metode 2 (PHP manual redirect)
+
+MASALAH 3: URL parameter tidak ter-capture
+───────────────────────────────────────────
+
+Solusi:
+1. Check jika $_GET['page'] sudah di-sanitize
+2. Use htmlspecialchars() untuk escape output
+3. Check error_details section di 404.php
+
+MASALAH 4: Session data tidak tersimpan
+────────────────────────────────────────
+
+Solusi:
+1. Check jika session_start() dipanggil di error_handler.php ✓
+2. Check jika cookie settings ok
+3. Check jika SESSION folder writable
+
+═════════════════════════════════════════════════════════════════════════════════
+🎁 BONUS FEATURES (FUTURE ENHANCEMENTS)
+═════════════════════════════════════════════════════════════════════════════════
+
+Anda bisa tambah di masa depan:
+
+1. SEARCH FUNCTIONALITY
+   ├─ Search form di 404 page
+   ├─ Find halaman yg mirip
+   └─ Suggest URL alternatives
+
+2. ERROR REPORTING
+   ├─ Button "Report Error"
+   ├─ Send feedback ke admin
+   └─ Help improve user experience
+
+3. SITEMAP
+   ├─ Show sitemap di 404 page
+   ├─ All available pages
+   └─ Direct navigation
+
+4. 404 PAGE CUSTOMIZATION
+   ├─ Admin dapat customize 404 message
+   ├─ Show featured content
+   └─ Promotional banners
+
+5. ANALYTICS
+   ├─ Track 404 errors
+   ├─ Identify broken links
+   ├─ Heatmap of 404 access
+   └─ Improve UX based on data
+
+═════════════════════════════════════════════════════════════════════════════════
+📞 SUPPORT & QUESTIONS
+═════════════════════════════════════════════════════════════════════════════════
+
+Jika ada pertanyaan tentang implementasi:
+
+1. Check error logs di browser console (F12 > Console)
+2. Check PHP errors di server logs
+3. Check .htaccess syntax
+4. Test dengan simple URL redirect first
+5. Verify file paths relative ke aplikasi root
+
+═════════════════════════════════════════════════════════════════════════════════
