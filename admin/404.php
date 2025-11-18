@@ -9,7 +9,7 @@ $requested_url = isset($_SERVER['REQUEST_URI']) ? htmlspecialchars($_SERVER['REQ
   <!-- Required meta tags -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <title>Koperasi - 404 Not Found</title>
+  <title>Koperasi Simpan Pinjam - 404 Not Found</title>
   <!-- plugins:css -->
   <link rel="stylesheet" href="/koperasi/template2/vendors/feather/feather.css">
   <link rel="stylesheet" href="/koperasi/template2/vendors/ti-icons/css/themify-icons.css">
