@@ -2,33 +2,58 @@
 <html lang="en">
 <?php include 'cek_login.php'; ?>
 <head>
-  <!-- Required meta tags -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <title>Koperasi - Simpanan</title>
-  <!-- plugins:css -->
+  <title>Koperasi - Rekap Bulanan</title>
+  
+  <!-- CSS -->
   <link rel="stylesheet" href="../template2/vendors/feather/feather.css">
   <link rel="stylesheet" href="../template2/vendors/ti-icons/css/themify-icons.css">
   <link rel="stylesheet" href="../template2/vendors/css/vendor.bundle.base.css">
-  <!-- endinject -->
-  <!-- Plugin css for this page -->
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
-  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap4.min.css">
-  <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap4.min.css">
-  <link rel="stylesheet" href="../template2/vendors/ti-icons/css/themify-icons.css">
-  <!-- End plugin css for this page -->
-  <!-- inject:css -->
   <link rel="stylesheet" href="../template2/css/vertical-layout-light/style.css">
-  <!-- endinject -->
   <link rel="shortcut icon" href="../template2/images/favicon.png" />
+  
+  <style>
+    .summary-card {
+      border-left: 4px solid #4CAF50;
+      background: #f8fff8;
+    }
+    .summary-card.warning {
+      border-left: 4px solid #ff9800;
+      background: #fffaf2;
+    }
+    .summary-card.danger {
+      border-left: 4px solid #f44336;
+      background: #fff5f5;
+    }
+    .summary-card.info {
+      border-left: 4px solid #2196F3;
+      background: #f8fdff;
+    }
+    .total-row {
+      background-color: #e8f5e8 !important;
+      font-weight: bold;
+    }
+    .table th {
+      background-color: #f8f9fa;
+    }
+    .text-right {
+      text-align: right;
+    }
+  </style>
 </head>
 <body>
   <div class="container-scroller">
-    <!-- partial:partials/_navbar.html -->
+    <!-- Navbar -->
     <nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
       <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
-        <a class="navbar-brand brand-logo mr-5" href="index.html"><img src="../template2/images/logo.svg" class="mr-2" alt="logo"/></a>
-        <a class="navbar-brand brand-logo-mini" href="index.html"><img src="../template2/images/logo-mini.svg" alt="logo"/></a>
+        <a class="navbar-brand brand-logo mr-5" href="index.html">
+          <img src="../template2/images/logo.svg" class="mr-2" alt="logo"/>
+        </a>
+        <a class="navbar-brand brand-logo-mini" href="index.html">
+          <img src="../template2/images/logo-mini.svg" alt="logo"/>
+        </a>
       </div>
       <div class="navbar-menu-wrapper d-flex align-items-center justify-content-end">
         <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize">
@@ -51,528 +76,586 @@
             </div>
           </li>    
         </ul>
-        <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button" data-toggle="offcanvas">
-          <span class="icon-menu"></span>
-        </button>
       </div>
     </nav>
-    <!-- partial -->
+
+    <!-- Main Content -->
     <div class="container-fluid page-body-wrapper">
-      <!-- partial:partials/_settings-panel.html -->
-      <div class="theme-setting-wrapper">
-        <div id="settings-trigger"><i class="ti-settings"></i></div>
-        <div id="theme-settings" class="settings-panel">
-          <i class="settings-close ti-close"></i>
-          <p class="settings-heading">SIDEBAR SKINS</p>
-          <div class="sidebar-bg-options selected" id="sidebar-light-theme"><div class="img-ss rounded-circle bg-light border mr-3"></div>Light</div>
-          <div class="sidebar-bg-options" id="sidebar-dark-theme"><div class="img-ss rounded-circle bg-dark border mr-3"></div>Dark</div>
-          <p class="settings-heading mt-2">HEADER SKINS</p>
-          <div class="color-tiles mx-0 px-4">
-            <div class="tiles success"></div>
-            <div class="tiles warning"></div>
-            <div class="tiles danger"></div>
-            <div class="tiles info"></div>
-            <div class="tiles dark"></div>
-            <div class="tiles default"></div>
-          </div>
-        </div>
-      </div>
-      <!-- partial:setting_pannel -->
-
-      <!-- sidebar -->
+      <!-- Sidebar -->
       <?php include '../layout/sidebar.php'; ?>
-      <!-- sidebar -->
 
-      <!-- partial -->
+      <!-- Main Panel -->
       <div class="main-panel">
         <div class="content-wrapper">
+          <!-- Header -->
           <div class="row">
             <div class="col-md-12 grid-margin">
               <div class="row">
                 <div class="col-12 col-xl-8 mb-2 mb-xl-0">
-                  <h1 class="font-weight-bold">Halaman data rekap bulanan</h1>
+                  <h1 class="font-weight-bold">Halaman Data Rekap Bulanan</h1>
+                  <h6 class="font-weight-normal mb-0">Rekapitulasi keuangan koperasi per bulan</h6>
+                </div>
+                <div class="col-12 col-xl-4">
+                  <div class="justify-content-end d-flex">
+                    <div class="dropdown flex-md-grow-1 flex-xl-grow-0">
+                      <button class="btn btn-sm btn-light bg-white dropdown-toggle" type="button" id="monthDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="ti-calendar"></i> <?php echo date('F Y'); ?>
+                      </button>
+                      <div class="dropdown-menu dropdown-menu-right" aria-labelledby="monthDropdown">
+                        <?php
+                        for ($i = 0; $i < 12; $i++) {
+                          $month = date('F Y', strtotime("-$i months"));
+                          echo '<a class="dropdown-item" href="?month=' . date('Y-m', strtotime("-$i months")) . '">' . $month . '</a>';
+                        }
+                        ?>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+
+          <?php
+          require_once '../koneksi.php';
           
-          <div class="stretch-card grid-margin grid-margin-md-0 mb-5">
-            <div class="card data-icon-card-primary">
-              <div class="card-body">
-                <?php
-                require_once '../koneksi.php';
-                
-                // Initialize all variables with default values
-                $jumlah_simpanan_pokok = ['total' => 0];
-                $jumlah_simpanan_wajib = ['total' => 0];
-                $jumlah_simpanan_sukarela = ['total' => 0];
-                $jumlah_simpanan = ['total' => 0];
-                $jumlah_pinjaman_acc = ['total' => 0];
-                $jumlah_angsuran_lunas = ['total' => 0];
-                $jumlah_bunga_lunas = ['total' => 0];
-                $saldo_akhir = 0;
+          // Get selected month from URL or use current month
+          $selected_month = isset($_GET['month']) ? $_GET['month'] : date('Y-m');
+          $month_start = $selected_month . '-01';
+          $month_end = date('Y-m-t', strtotime($month_start));
+          
+          // Initialize variables
+          $data_rekap = [
+            'total_anggota' => 0,
+            'total_simpanan' => 0,
+            'pinjaman_acc' => 0,
+            'angsuran_lunas' => 0,
+            'bunga_lunas' => 0,
+            'saldo_akhir' => 0
+          ];
+          
+          $data_transaksi_simpanan = [];
+          $data_transaksi_pinjaman = [];
+          $data_transaksi_angsuran = [];
+          
+          try {
+            // DEBUG: Check what data exists in pinjaman table
+            $debug_pinjaman_query = "SELECT id, anggota_id, status, jumlah_pinjaman, tanggal_pengajuan, tanggal_acc FROM pinjaman WHERE status = 'acc'";
+            $debug_result = mysqli_query($koneksi, $debug_pinjaman_query);
+            $debug_data = [];
+            while ($row = mysqli_fetch_assoc($debug_result)) {
+                $debug_data[] = $row;
+            }
+            echo "<!-- Debug Pinjaman ACC Data: " . json_encode($debug_data) . " -->";
 
-                try {
-                    // First, let's check what tables and columns actually exist
-                    $tables_result = mysqli_query($koneksi, "SHOW TABLES");
-                    $tables = [];
-                    while ($row = mysqli_fetch_array($tables_result)) {
-                        $tables[] = $row[0];
-                    }
+            // 1. GET TOTAL ANGGOTA
+            $anggota_query = "SELECT COUNT(*) as total FROM anggota";
+            $result_anggota = mysqli_query($koneksi, $anggota_query);
+            if ($result_anggota) {
+              $anggota_data = mysqli_fetch_assoc($result_anggota);
+              $data_rekap['total_anggota'] = $anggota_data['total'];
+              echo "<!-- Total Anggota: " . $data_rekap['total_anggota'] . " -->";
+            }
 
-                    // APPROACH 1: Check if separate tables exist for each simpanan type
-                    if (in_array('simpanan_pokok', $tables)) {
-                        // If separate tables exist for each type
-                        $query_simpanan_pokok = "SELECT SUM(nominal) as total FROM simpanan_pokok";
-                        $query_simpanan_wajib = "SELECT SUM(nominal) as total FROM simpanan_wajib";
-                        $query_simpanan_sukarela = "SELECT SUM(nominal) as total FROM simpanan_sukarela";
-                    } 
-                    // APPROACH 2: Check if simpanan table exists and has type columns
-                    else if (in_array('simpanan', $tables)) {
-                        // Check columns in simpanan table
-                        $columns_result = mysqli_query($koneksi, "SHOW COLUMNS FROM simpanan");
-                        $columns = [];
-                        while ($row = mysqli_fetch_assoc($columns_result)) {
-                            $columns[] = $row['Field'];
-                        }
-                        
-                        // If simpanan table has separate columns for each type
-                        if (in_array('simpanan_pokok', $columns)) {
-                            $query_simpanan_pokok = "SELECT SUM(simpanan_pokok) as total FROM simpanan";
-                            $query_simpanan_wajib = "SELECT SUM(simpanan_wajib) as total FROM simpanan";
-                            $query_simpanan_sukarela = "SELECT SUM(simpanan_sukarela) as total FROM simpanan";
-                        }
-                        // If simpanan table has a type column
-                        else if (in_array('jenis', $columns)) {
-                            $query_simpanan_pokok = "SELECT SUM(nominal) as total FROM simpanan WHERE jenis = 'Pokok' OR jenis = 'pokok'";
-                            $query_simpanan_wajib = "SELECT SUM(nominal) as total FROM simpanan WHERE jenis = 'Wajib' OR jenis = 'wajib'";
-                            $query_simpanan_sukarela = "SELECT SUM(nominal) as total FROM simpanan WHERE jenis = 'Sukarela' OR jenis = 'sukarela' OR jenis = 'Sukarela'";
-                        }
-                        else if (in_array('type', $columns)) {
-                            $query_simpanan_pokok = "SELECT SUM(nominal) as total FROM simpanan WHERE type = 'Pokok' OR type = 'pokok'";
-                            $query_simpanan_wajib = "SELECT SUM(nominal) as total FROM simpanan WHERE type = 'Wajib' OR type = 'wajib'";
-                            $query_simpanan_sukarela = "SELECT SUM(nominal) as total FROM simpanan WHERE type = 'Sukarela' OR type = 'sukarela' OR type = 'Sukarela'";
-                        }
-                        // Fallback: just get total from simpanan table
-                        else {
-                            $query_simpanan_pokok = "SELECT SUM(nominal) as total FROM simpanan";
-                            $query_simpanan_wajib = "SELECT 0 as total";
-                            $query_simpanan_sukarela = "SELECT 0 as total";
-                        }
-                    }
-                    // APPROACH 3: No simpanan tables found
-                    else {
-                        $query_simpanan_pokok = "SELECT 0 as total";
-                        $query_simpanan_wajib = "SELECT 0 as total";
-                        $query_simpanan_sukarela = "SELECT 0 as total";
-                    }
+            // 2. GET TOTAL SIMPANAN (dari tabel simpanan)
+            $simpanan_query = "SELECT COALESCE(SUM(nominal), 0) as total 
+                              FROM simpanan 
+                              WHERE (tanggal BETWEEN '$month_start' AND '$month_end' OR tanggal = '0000-00-00')";
+            
+            echo "<!-- Simpanan Query: $simpanan_query -->";
+            
+            $result_simpanan = mysqli_query($koneksi, $simpanan_query);
+            if ($result_simpanan) {
+                $simpanan_data = mysqli_fetch_assoc($result_simpanan);
+                $data_rekap['total_simpanan'] = $simpanan_data['total'];
+                echo "<!-- Total Simpanan: " . $data_rekap['total_simpanan'] . " -->";
+            }
 
-                    // Execute simpanan queries
-                    $result_simpanan_pokok = mysqli_query($koneksi, $query_simpanan_pokok);
-                    if($result_simpanan_pokok && mysqli_num_rows($result_simpanan_pokok) > 0) {
-                        $jumlah_simpanan_pokok = mysqli_fetch_assoc($result_simpanan_pokok);
-                    }
+            // 3. GET PINJAMAN ACC - VERSI YANG BENAR
+            // Mengambil SEMUA pinjaman dengan status 'acc' (tidak difilter bulan)
+            $pinjaman_query = "SELECT COALESCE(SUM(jumlah_pinjaman), 0) as total 
+                              FROM pinjaman 
+                              WHERE status = 'acc'";
+            
+            echo "<!-- Pinjaman ACC Query: $pinjaman_query -->";
+            
+            $result_pinjaman = mysqli_query($koneksi, $pinjaman_query);
+            if ($result_pinjaman) {
+                $pinjaman_data = mysqli_fetch_assoc($result_pinjaman);
+                $data_rekap['pinjaman_acc'] = $pinjaman_data['total'];
+                echo "<!-- Pinjaman ACC Total: " . $data_rekap['pinjaman_acc'] . " -->";
+            } else {
+                echo "<!-- Pinjaman query error: " . mysqli_error($koneksi) . " -->";
+            }
 
-                    $result_simpanan_wajib = mysqli_query($koneksi, $query_simpanan_wajib);
-                    if($result_simpanan_wajib && mysqli_num_rows($result_simpanan_wajib) > 0) {
-                        $jumlah_simpanan_wajib = mysqli_fetch_assoc($result_simpanan_wajib);
-                    }
-
-                    $result_simpanan_sukarela = mysqli_query($koneksi, $query_simpanan_sukarela);
-                    if($result_simpanan_sukarela && mysqli_num_rows($result_simpanan_sukarela) > 0) {
-                        $jumlah_simpanan_sukarela = mysqli_fetch_assoc($result_simpanan_sukarela);
-                    }
-
-                    // Query for Total Simpanan (sum of all types)
-                    $total_simpanan = ($jumlah_simpanan_pokok['total'] ?? 0) + ($jumlah_simpanan_wajib['total'] ?? 0) + ($jumlah_simpanan_sukarela['total'] ?? 0);
-                    $jumlah_simpanan = ['total' => $total_simpanan];
-
-                    // Query for Pinjaman ACC
-                    if (in_array('pinjaman', $tables)) {
-                        $pinjaman_columns_result = mysqli_query($koneksi, "SHOW COLUMNS FROM pinjaman");
-                        $pinjaman_columns = [];
-                        while ($row = mysqli_fetch_assoc($pinjaman_columns_result)) {
-                            $pinjaman_columns[] = $row['Field'];
-                        }
-                        
-                        if (in_array('status', $pinjaman_columns)) {
-                            $query_pinjaman_acc = "SELECT SUM(jumlah_pinjaman) as total FROM pinjaman WHERE status = 'ACC' OR status = 'acc' OR status = 'Acc'";
-                        } else if (in_array('status_pinjaman', $pinjaman_columns)) {
-                            $query_pinjaman_acc = "SELECT SUM(jumlah_pinjaman) as total FROM pinjaman WHERE status_pinjaman = 'ACC' OR status_pinjaman = 'acc' OR status_pinjaman = 'Acc'";
-                        } else {
-                            $query_pinjaman_acc = "SELECT SUM(jumlah_pinjaman) as total FROM pinjaman";
-                        }
-                        
-                        $result_pinjaman_acc = mysqli_query($koneksi, $query_pinjaman_acc);
-                        if($result_pinjaman_acc && mysqli_num_rows($result_pinjaman_acc) > 0) {
-                            $jumlah_pinjaman_acc = mysqli_fetch_assoc($result_pinjaman_acc);
-                        }
-                    }
-
-                    // Query for Angsuran Lunas
-                    if (in_array('angsuran', $tables)) {
-                        $angsuran_columns_result = mysqli_query($koneksi, "SHOW COLUMNS FROM angsuran");
-                        $angsuran_columns = [];
-                        while ($row = mysqli_fetch_assoc($angsuran_columns_result)) {
-                            $angsuran_columns[] = $row['Field'];
-                        }
-                        
-                        // Cek kolom yang tersedia untuk jumlah angsuran
-                        $angsuran_amount_column = 'jumlah_angsuran'; // default
-                        if (in_array('jumlah_bayar', $angsuran_columns)) {
-                            $angsuran_amount_column = 'jumlah_bayar';
-                        } else if (in_array('nominal', $angsuran_columns)) {
-                            $angsuran_amount_column = 'nominal';
-                        } else if (in_array('besar_angsuran', $angsuran_columns)) {
-                            $angsuran_amount_column = 'besar_angsuran';
-                        }
-                        
-                        if (in_array('status', $angsuran_columns)) {
-                            $query_angsuran_lunas = "SELECT SUM($angsuran_amount_column) as total FROM angsuran WHERE status = 'lunas' OR status = 'Lunas'";
-                        } else if (in_array('status_angsuran', $angsuran_columns)) {
-                            $query_angsuran_lunas = "SELECT SUM($angsuran_amount_column) as total FROM angsuran WHERE status_angsuran = 'lunas' OR status_angsuran = 'Lunas'";
-                        } else {
-                            $query_angsuran_lunas = "SELECT SUM($angsuran_amount_column) as total FROM angsuran";
-                        }
-                        
-                        $result_angsuran_lunas = mysqli_query($koneksi, $query_angsuran_lunas);
-                        if($result_angsuran_lunas && mysqli_num_rows($result_angsuran_lunas) > 0) {
-                            $jumlah_angsuran_lunas = mysqli_fetch_assoc($result_angsuran_lunas);
-                        }
-
-                        // Query for Bunga Lunas
-                        if (in_array('bunga', $angsuran_columns)) {
-                            if (in_array('status', $angsuran_columns)) {
-                                $query_bunga_lunas = "SELECT SUM(bunga) as total FROM angsuran WHERE status = 'lunas' OR status = 'Lunas'";
-                            } else if (in_array('status_angsuran', $angsuran_columns)) {
-                                $query_bunga_lunas = "SELECT SUM(bunga) as total FROM angsuran WHERE status_angsuran = 'lunas' OR status_angsuran = 'Lunas'";
-                            } else {
-                                $query_bunga_lunas = "SELECT SUM(bunga) as total FROM angsuran";
-                            }
-                            
-                            $result_bunga_lunas = mysqli_query($koneksi, $query_bunga_lunas);
-                            if($result_bunga_lunas && mysqli_num_rows($result_bunga_lunas) > 0) {
-                                $jumlah_bunga_lunas = mysqli_fetch_assoc($result_bunga_lunas);
-                            }
-                        }
-                    }
-
-                    // Calculate Saldo Akhir
-                    $saldo_akhir = ($jumlah_simpanan['total'] ?? 0) + ($jumlah_angsuran_lunas['total'] ?? 0) + ($jumlah_bunga_lunas['total'] ?? 0) - ($jumlah_pinjaman_acc['total'] ?? 0);
-
-                } catch (Exception $e) {
-                    // If any error occurs, set all values to 0
-                    error_log("Database error: " . $e->getMessage());
+            // 4. GET ANGSURAN LUNAS (dari tabel angsuran)
+            $angsuran_query = "SELECT 
+                              COALESCE(SUM(nominal), 0) as angsuran,
+                              COALESCE(SUM(bunga), 0) as bunga
+                              FROM angsuran 
+                              WHERE status = 'lunas'";
+            
+            $result_angsuran = mysqli_query($koneksi, $angsuran_query);
+            if ($result_angsuran) {
+                $angsuran_data = mysqli_fetch_assoc($result_angsuran);
+                $data_rekap['angsuran_lunas'] = $angsuran_data['angsuran'];
+                $data_rekap['bunga_lunas'] = $angsuran_data['bunga'];
+                echo "<!-- Angsuran Lunas: " . $data_rekap['angsuran_lunas'] . " -->";
+                echo "<!-- Bunga Lunas: " . $data_rekap['bunga_lunas'] . " -->";
+            }
+            
+            // Calculate saldo akhir
+            $data_rekap['saldo_akhir'] = ($data_rekap['total_simpanan'] + $data_rekap['angsuran_lunas'] + $data_rekap['bunga_lunas']) - $data_rekap['pinjaman_acc'];
+            
+            echo "<!-- Saldo Akhir: " . $data_rekap['saldo_akhir'] . " -->";
+            
+            // 5. GET DETAILED TRANSACTION DATA - SIMPANAN
+            $transaksi_simpanan_query = "SELECT 
+                                        s.tanggal,
+                                        a.nama as nama_anggota,
+                                        s.nominal
+                                        FROM simpanan s
+                                        LEFT JOIN anggota a ON s.anggota_id = a.id
+                                        WHERE (s.tanggal BETWEEN '$month_start' AND '$month_end' OR s.tanggal = '0000-00-00')
+                                        ORDER BY s.tanggal DESC, s.id DESC";
+            
+            $result_simpanan_detail = mysqli_query($koneksi, $transaksi_simpanan_query);
+            if ($result_simpanan_detail) {
+                while ($row = mysqli_fetch_assoc($result_simpanan_detail)) {
+                    $data_transaksi_simpanan[] = $row;
                 }
-                ?>
+            }
+
+            // 6. GET DETAILED TRANSACTION DATA - PINJAMAN
+            $transaksi_pinjaman_query = "SELECT 
+                                        p.tanggal_pengajuan,
+                                        p.tanggal_acc,
+                                        a.nama as nama_anggota,
+                                        p.jumlah_pinjaman,
+                                        p.status
+                                        FROM pinjaman p
+                                        LEFT JOIN anggota a ON p.anggota_id = a.id
+                                        WHERE p.status = 'acc'
+                                        ORDER BY p.tanggal_pengajuan DESC, p.id DESC";
+            
+            $result_pinjaman_detail = mysqli_query($koneksi, $transaksi_pinjaman_query);
+            if ($result_pinjaman_detail) {
+                while ($row = mysqli_fetch_assoc($result_pinjaman_detail)) {
+                    $data_transaksi_pinjaman[] = $row;
+                }
+            }
+
+            // 7. GET DETAILED TRANSACTION DATA - ANGSURAN
+            $transaksi_angsuran_query = "SELECT 
+                                        ag.tgl_pelunasan,
+                                        a.nama as nama_anggota,
+                                        ag.angsuran_ke,
+                                        ag.nominal,
+                                        ag.bunga,
+                                        ag.status
+                                        FROM angsuran ag
+                                        LEFT JOIN pinjaman p ON ag.pinjaman_id = p.id
+                                        LEFT JOIN anggota a ON p.anggota_id = a.id
+                                        WHERE ag.status = 'lunas'
+                                        ORDER BY ag.tgl_pelunasan DESC, ag.id DESC";
+            
+            $result_angsuran_detail = mysqli_query($koneksi, $transaksi_angsuran_query);
+            if ($result_angsuran_detail) {
+                while ($row = mysqli_fetch_assoc($result_angsuran_detail)) {
+                    $data_transaksi_angsuran[] = $row;
+                }
+            }
+            
+          } catch (Exception $e) {
+            error_log("Database error: " . $e->getMessage());
+            echo "<!-- Exception: " . $e->getMessage() . " -->";
+          }
+          ?>
+
+          <!-- Summary Cards -->
+          <div class="row">
+            <div class="col-md-3 grid-margin stretch-card">
+              <div class="card summary-card">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <p class="card-title mb-0">Total Anggota</p>
+                      <h3 class="text-success"><?= number_format($data_rekap['total_anggota'], 0, ',', '.') ?></h3>
+                    </div>
+                    <div class="icon-box">
+                      <i class="ti-user text-success" style="font-size: 2rem;"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-3 grid-margin stretch-card">
+              <div class="card summary-card info">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <p class="card-title mb-0">Total Simpanan</p>
+                      <h3 class="text-info">Rp <?= number_format($data_rekap['total_simpanan'], 0, ',', '.') ?></h3>
+                    </div>
+                    <div class="icon-box">
+                      <i class="ti-wallet text-info" style="font-size: 2rem;"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-3 grid-margin stretch-card">
+              <div class="card summary-card warning">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <p class="card-title mb-0">Pinjaman ACC</p>
+                      <h3 class="text-warning">Rp <?= number_format($data_rekap['pinjaman_acc'], 0, ',', '.') ?></h3>
+                    </div>
+                    <div class="icon-box">
+                      <i class="ti-money text-warning" style="font-size: 2rem;"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-3 grid-margin stretch-card">
+              <div class="card summary-card <?= $data_rekap['saldo_akhir'] < 0 ? 'danger' : '' ?>">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <p class="card-title mb-0">Saldo Akhir</p>
+                      <h3 class="<?= $data_rekap['saldo_akhir'] < 0 ? 'text-danger' : 'text-primary' ?>">
+                        Rp <?= number_format($data_rekap['saldo_akhir'], 0, ',', '.') ?>
+                      </h3>
+                    </div>
+                    <div class="icon-box">
+                      <i class="ti-stats-up <?= $data_rekap['saldo_akhir'] < 0 ? 'text-danger' : 'text-primary' ?>" style="font-size: 2rem;"></i>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-          
-          <!-- Tabel Saldo ksp -->
+
+          <!-- Tabel Rekap Bulanan -->
           <div class="row">
             <div class="col-md-12 grid-margin stretch-card">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title mb-3">Rekap Bulanan</h4>
-                        <table id="rekapBulanan" class="table table-bordered">
-                            <thead class="thead-dark">
-                                <tr>
-                                    <th>Keterangan</th>
-                                    <th>Total (Rp)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Total Simpanan Pokok</td>
-                                    <td>Rp <?= number_format($jumlah_simpanan_pokok['total'] ?? 0, 0, ',', '.') ?></td>
-                                </tr>
-                                <tr>
-                                    <td>Total Simpanan Wajib</td>
-                                    <td>Rp <?= number_format($jumlah_simpanan_wajib['total'] ?? 0, 0, ',', '.') ?></td>
-                                </tr>
-                                <tr>
-                                    <td>Total Simpanan Sukarela</td>
-                                    <td>Rp <?= number_format($jumlah_simpanan_sukarela['total'] ?? 0, 0, ',', '.') ?></td>
-                                </tr>
-                                <tr>
-                                    <td><b>Total Simpanan</b></td>
-                                    <td><b>Rp <?= number_format($jumlah_simpanan['total'] ?? 0, 0, ',', '.') ?></b></td>
-                                </tr>
-                                <tr>
-                                    <td>Total Pinjaman ACC</td>
-                                    <td>Rp <?= number_format($jumlah_pinjaman_acc['total'] ?? 0, 0, ',', '.') ?></td>
-                                </tr>
-                                <tr>
-                                    <td>Total Angsuran Lunas</td>
-                                    <td>Rp <?= number_format($jumlah_angsuran_lunas['total'] ?? 0, 0, ',', '.') ?></td>
-                                </tr>
-                                <tr>
-                                    <td>Total Bunga Lunas</td>
-                                    <td>Rp <?= number_format($jumlah_bunga_lunas['total'] ?? 0, 0, ',', '.') ?></td>
-                                </tr>
-                                <tr class="table-primary">
-                                    <td><b>Total Saldo Akhir</b></td>
-                                    <td><b>Rp <?= number_format($saldo_akhir, 0, ',', '.') ?></b></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+              <div class="card">
+                <div class="card-body">
+                  <h4 class="card-title mb-4">Rekap Bulanan - <?= date('F Y', strtotime($month_start)) ?></h4>
+                  <div class="table-responsive">
+                    <table id="rekapBulanan" class="table table-bordered table-hover">
+                      <thead class="thead-dark">
+                        <tr>
+                          <th>Keterangan</th>
+                          <th class="text-right">Total (Rp)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>Total Anggota</td>
+                          <td class="text-right"><?= number_format($data_rekap['total_anggota'], 0, ',', '.') ?> orang</td>
+                        </tr>
+                        <tr>
+                          <td>Total Simpanan</td>
+                          <td class="text-right">Rp <?= number_format($data_rekap['total_simpanan'], 0, ',', '.') ?></td>
+                        </tr>
+                        <tr>
+                          <td>Pinjaman ACC</td>
+                          <td class="text-right">Rp <?= number_format($data_rekap['pinjaman_acc'], 0, ',', '.') ?></td>
+                        </tr>
+                        <tr>
+                          <td>Angsuran Lunas</td>
+                          <td class="text-right">Rp <?= number_format($data_rekap['angsuran_lunas'], 0, ',', '.') ?></td>
+                        </tr>
+                        <tr>
+                          <td>Bunga Lunas</td>
+                          <td class="text-right">Rp <?= number_format($data_rekap['bunga_lunas'], 0, ',', '.') ?></td>
+                        </tr>
+                        <tr class="table-primary total-row">
+                          <td><strong>Saldo Akhir</strong></td>
+                          <td class="text-right"><strong>Rp <?= number_format($data_rekap['saldo_akhir'], 0, ',', '.') ?></strong></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
+              </div>
             </div>
           </div>
 
-          <!-- TABEL REKAP PENARIKAN / PEMASUKAN -->
+          <!-- Tabel Detail Simpanan -->
           <div class="row">
             <div class="col-md-12 grid-margin stretch-card">
-                <div class="card">
-                    <div class="card-body">
-                        <h3 class="card-title mb-3">Data Pemasukan / Penarikan</h3>
-
-                        <div class="table-responsive">
-                            <button onclick="printTable()" class="btn btn-primary btn-sm mb-3"><i class="ti-printer btn-icon-append"></i> Print</button>
-                            <button onclick="exportTableToExcel('rekapTable')" class="btn btn-success btn-sm mb-3"><i class="ti-file"></i> Excel</button>
-
-                            <table id="rekapTable" class="table table-bordered">
-                                <thead class="thead-dark">
-                                    <tr>
-                                        <th>No</th>
-                                        <th>Tanggal</th>
-                                        <th>Nama Anggota</th>
-                                        <th>Simpan Pokok</th>
-                                        <th>Simpanan Wajib</th>
-                                        <th>Simpanan Sukarela</th>
-                                        <th>Total Simpanan</th>
-                                        <th>Penarikan</th>
-                                        <th>Total Hutang</th>
-                                        <th>Angsuran</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php
-                                    // Debug: Cek struktur tabel angsuran
-                                    $debug_angsuran = false;
-                                    if (in_array('angsuran', $tables)) {
-                                        $debug_columns = mysqli_query($koneksi, "SHOW COLUMNS FROM angsuran");
-                                        $debug_angsuran_columns = [];
-                                        while ($row = mysqli_fetch_assoc($debug_columns)) {
-                                            $debug_angsuran_columns[] = $row['Field'];
-                                        }
-                                        $debug_angsuran = true;
-                                    }
-
-                                    // Query sederhana untuk menghindari error JOIN yang kompleks
-                                    $query_simpanan = "SELECT * FROM simpanan ORDER BY tanggal DESC LIMIT 50";
-                                    $ambil_simpanan = mysqli_query($koneksi, $query_simpanan);
-                                    $no = 1;
-                                    
-                                    if ($ambil_simpanan && mysqli_num_rows($ambil_simpanan) > 0) {
-                                        while ($data_simpanan = mysqli_fetch_assoc($ambil_simpanan)) {
-                                            $id_anggota = $data_simpanan['id_anggota'] ?? null;
-                                            
-                                            // Get nama anggota
-                                            $nama_anggota = 'Tidak ada nama';
-                                            if ($id_anggota) {
-                                                $query_anggota = "SELECT nama FROM anggota WHERE id_anggota = '$id_anggota' LIMIT 1";
-                                                $result_anggota = mysqli_query($koneksi, $query_anggota);
-                                                if ($result_anggota && mysqli_num_rows($result_anggota) > 0) {
-                                                    $data_anggota = mysqli_fetch_assoc($result_anggota);
-                                                    $nama_anggota = $data_anggota['nama'] ?? 'Tidak ada nama';
-                                                }
-                                            }
-                                            
-                                            // Get total hutang
-                                            $total_hutang = 0;
-                                            if ($id_anggota && in_array('pinjaman', $tables)) {
-                                                $query_hutang = "SELECT SUM(jumlah_pinjaman) as total FROM pinjaman WHERE id_anggota = '$id_anggota'";
-                                                $result_hutang = mysqli_query($koneksi, $query_hutang);
-                                                if ($result_hutang && mysqli_num_rows($result_hutang) > 0) {
-                                                    $data_hutang = mysqli_fetch_assoc($result_hutang);
-                                                    $total_hutang = $data_hutang['total'] ?? 0;
-                                                }
-                                            }
-                                            
-                                            // Get total angsuran
-                                            $total_angsuran = 0;
-                                            if ($id_anggota && $debug_angsuran) {
-                                                // Gunakan kolom yang tersedia
-                                                $angsuran_column = 'jumlah_angsuran';
-                                                if (in_array('jumlah_bayar', $debug_angsuran_columns)) {
-                                                    $angsuran_column = 'jumlah_bayar';
-                                                } else if (in_array('nominal', $debug_angsuran_columns)) {
-                                                    $angsuran_column = 'nominal';
-                                                } else if (in_array('besar_angsuran', $debug_angsuran_columns)) {
-                                                    $angsuran_column = 'besar_angsuran';
-                                                }
-                                                
-                                                $query_angsuran = "SELECT SUM($angsuran_column) as total FROM angsuran WHERE id_anggota = '$id_anggota'";
-                                                $result_angsuran = mysqli_query($koneksi, $query_angsuran);
-                                                if ($result_angsuran && mysqli_num_rows($result_angsuran) > 0) {
-                                                    $data_angsuran = mysqli_fetch_assoc($result_angsuran);
-                                                    $total_angsuran = $data_angsuran['total'] ?? 0;
-                                                }
-                                            }
-                                            
-                                            // Hitung total simpanan
-                                            $total_simpanan = ($data_simpanan['simpanan_pokok'] ?? 0) + 
-                                                             ($data_simpanan['simpanan_wajib'] ?? 0) + 
-                                                             ($data_simpanan['simpanan_sukarela'] ?? 0);
-                                            
-                                            // Format tanggal
-                                            $tanggal = $data_simpanan['tanggal'] ?? '';
-                                            if ($tanggal && $tanggal != '0000-00-00') {
-                                                $tanggal_formatted = date('d-m-Y', strtotime($tanggal));
-                                            } else {
-                                                $tanggal_formatted = '-';
-                                            }
-                                    ?>
-                                            <tr>
-                                                <td><?= $no++ ?></td>
-                                                <td><?= $tanggal_formatted ?></td>
-                                                <td><?= htmlspecialchars($nama_anggota) ?></td>
-                                                <td>Rp <?= number_format($data_simpanan['simpanan_pokok'] ?? 0, 0, ',', '.') ?></td>
-                                                <td>Rp <?= number_format($data_simpanan['simpanan_wajib'] ?? 0, 0, ',', '.') ?></td>
-                                                <td>Rp <?= number_format($data_simpanan['simpanan_sukarela'] ?? 0, 0, ',', '.') ?></td>
-                                                <td><b>Rp <?= number_format($total_simpanan, 0, ',', '.') ?></b></td>
-                                                <td>Rp <?= number_format($data_simpanan['penarikan'] ?? 0, 0, ',', '.') ?></td>
-                                                <td>Rp <?= number_format($total_hutang, 0, ',', '.') ?></td>
-                                                <td>Rp <?= number_format($total_angsuran, 0, ',', '.') ?></td>
-                                            </tr>
-                                    <?php
-                                        }
-                                    } else {
-                                        echo '<tr><td colspan="10" class="text-center">Tidak ada data simpanan</td></tr>';
-                                    }
-                                    ?>
-                                </tbody>
-                            </table>
-                        </div>
+              <div class="card">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="card-title mb-0">Detail Transaksi Simpanan</h4>
+                    <div>
+                      <button onclick="printTable()" class="btn btn-primary btn-sm">
+                        <i class="ti-printer"></i> Print
+                      </button>
+                      <button onclick="exportToExcel('tableSimpanan')" class="btn btn-success btn-sm">
+                        <i class="ti-file"></i> Excel
+                      </button>
                     </div>
+                  </div>
+                  
+                  <div class="table-responsive">
+                    <table id="tableSimpanan" class="table table-bordered table-hover">
+                      <thead class="thead-dark">
+                        <tr>
+                          <th width="5%">No</th>
+                          <th width="15%">Tanggal</th>
+                          <th width="25%">Nama Anggota</th>
+                          <th width="20%" class="text-right">Nominal</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <?php if (count($data_transaksi_simpanan) > 0): ?>
+                          <?php $no = 1; ?>
+                          <?php foreach ($data_transaksi_simpanan as $simpanan): ?>
+                            <?php
+                            $tanggal = ($simpanan['tanggal'] && $simpanan['tanggal'] != '0000-00-00') ? date('d-m-Y', strtotime($simpanan['tanggal'])) : '-';
+                            $nama_anggota = $simpanan['nama_anggota'] ?? 'Tidak ada nama';
+                            ?>
+                            <tr>
+                              <td><?= $no++ ?></td>
+                              <td><?= $tanggal ?></td>
+                              <td><?= htmlspecialchars($nama_anggota) ?></td>
+                              <td class="text-right">Rp <?= number_format($simpanan['nominal'] ?? 0, 0, ',', '.') ?></td>
+                            </tr>
+                          <?php endforeach; ?>
+                        <?php else: ?>
+                          <tr>
+                            <td colspan="4" class="text-center text-muted py-4">
+                              <i class="ti-info-alt" style="font-size: 2rem;"></i><br>
+                              Tidak ada data simpanan untuk bulan ini
+                            </td>
+                          </tr>
+                        <?php endif; ?>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tabel Detail Pinjaman -->
+          <div class="row">
+            <div class="col-md-12 grid-margin stretch-card">
+              <div class="card">
+                <div class="card-body">
+                  <h4 class="card-title mb-3">Detail Pinjaman ACC</h4>
+                  <div class="table-responsive">
+                    <table id="tablePinjaman" class="table table-bordered table-hover">
+                      <thead class="thead-dark">
+                        <tr>
+                          <th width="5%">No</th>
+                          <th width="15%">Tanggal Pengajuan</th>
+                          <th width="15%">Tanggal ACC</th>
+                          <th width="25%">Nama Anggota</th>
+                          <th width="20%" class="text-right">Jumlah Pinjaman</th>
+                          <th width="10%">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <?php if (count($data_transaksi_pinjaman) > 0): ?>
+                          <?php $no = 1; ?>
+                          <?php foreach ($data_transaksi_pinjaman as $pinjaman): ?>
+                            <?php
+                            $tgl_pengajuan = ($pinjaman['tanggal_pengajuan'] && $pinjaman['tanggal_pengajuan'] != '0000-00-00') ? date('d-m-Y', strtotime($pinjaman['tanggal_pengajuan'])) : '-';
+                            $tgl_acc = ($pinjaman['tanggal_acc'] && $pinjaman['tanggal_acc'] != '0000-00-00') ? date('d-m-Y', strtotime($pinjaman['tanggal_acc'])) : '-';
+                            $nama_anggota = $pinjaman['nama_anggota'] ?? 'Tidak ada nama';
+                            ?>
+                            <tr>
+                              <td><?= $no++ ?></td>
+                              <td><?= $tgl_pengajuan ?></td>
+                              <td><?= $tgl_acc ?></td>
+                              <td><?= htmlspecialchars($nama_anggota) ?></td>
+                              <td class="text-right">Rp <?= number_format($pinjaman['jumlah_pinjaman'] ?? 0, 0, ',', '.') ?></td>
+                              <td>
+                                <span class="badge badge-<?= $pinjaman['status'] == 'acc' ? 'success' : 'warning' ?>">
+                                  <?= strtoupper($pinjaman['status'] ?? 'pending') ?>
+                                </span>
+                              </td>
+                            </tr>
+                          <?php endforeach; ?>
+                        <?php else: ?>
+                          <tr>
+                            <td colspan="6" class="text-center text-muted py-4">
+                              <i class="ti-info-alt" style="font-size: 2rem;"></i><br>
+                              Tidak ada data pinjaman ACC
+                            </td>
+                          </tr>
+                        <?php endif; ?>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tabel Detail Angsuran -->
+          <div class="row">
+            <div class="col-md-12 grid-margin stretch-card">
+              <div class="card">
+                <div class="card-body">
+                  <h4 class="card-title mb-3">Detail Transaksi Angsuran Lunas</h4>
+                  <div class="table-responsive">
+                    <table id="tableAngsuran" class="table table-bordered table-hover">
+                      <thead class="thead-dark">
+                        <tr>
+                          <th width="5%">No</th>
+                          <th width="15%">Tanggal Pelunasan</th>
+                          <th width="25%">Nama Anggota</th>
+                          <th width="10%">Angsuran Ke</th>
+                          <th width="15%" class="text-right">Nominal</th>
+                          <th width="15%" class="text-right">Bunga</th>
+                          <th width="10%">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <?php if (count($data_transaksi_angsuran) > 0): ?>
+                          <?php $no = 1; ?>
+                          <?php foreach ($data_transaksi_angsuran as $angsuran): ?>
+                            <?php
+                            $tgl_pelunasan = ($angsuran['tgl_pelunasan'] && $angsuran['tgl_pelunasan'] != '0000-00-00') ? date('d-m-Y', strtotime($angsuran['tgl_pelunasan'])) : '-';
+                            $nama_anggota = $angsuran['nama_anggota'] ?? 'Tidak ada nama';
+                            ?>
+                            <tr>
+                              <td><?= $no++ ?></td>
+                              <td><?= $tgl_pelunasan ?></td>
+                              <td><?= htmlspecialchars($nama_anggota) ?></td>
+                              <td><?= $angsuran['angsuran_ke'] ?? 0 ?></td>
+                              <td class="text-right">Rp <?= number_format($angsuran['nominal'] ?? 0, 0, ',', '.') ?></td>
+                              <td class="text-right">Rp <?= number_format($angsuran['bunga'] ?? 0, 0, ',', '.') ?></td>
+                              <td>
+                                <span class="badge badge-<?= $angsuran['status'] == 'lunas' ? 'success' : 'warning' ?>">
+                                  <?= $angsuran['status'] == 'lunas' ? 'LUNAS' : 'BELUM LUNAS' ?>
+                                </span>
+                              </td>
+                            </tr>
+                          <?php endforeach; ?>
+                        <?php else: ?>
+                          <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                              <i class="ti-info-alt" style="font-size: 2rem;"></i><br>
+                              Tidak ada data angsuran lunas
+                            </td>
+                          </tr>
+                        <?php endif; ?>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-        <!-- content-wrapper ends -->
-        
-        <!-- partial:partials/_footer.html -->
+
+        <!-- Footer -->
         <footer class="footer">
           <div class="d-sm-flex justify-content-center justify-content-sm-between">
-            <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">Copyright © 2021.  Premium <a href="https://www.bootstrapdash.com/" target="_blank">Bootstrap admin template</a> from BootstrapDash. All rights reserved.</span>
-            <span class="float-none float-sm-right d-block mt-1 mt-sm-0 text-center">Hand-crafted & made with <i class="ti-heart text-danger ml-1"></i></span>
+            <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">
+              Copyright © 2021. Premium Bootstrap admin template from BootstrapDash.
+            </span>
+            <span class="float-none float-sm-right d-block mt-1 mt-sm-0 text-center">
+              Hand-crafted & made with <i class="ti-heart text-danger ml-1"></i>
+            </span>
           </div>
-          <div class="d-sm-flex justify-content-center justify-content-sm-between">
-            <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">Distributed by <a href="https://www.themewagon.com/" target="_blank">Themewagon</a></span> 
-          </div>
-        </footer> 
-        <!-- partial -->
+        </footer>
       </div>
-      <!-- main-panel ends -->
-    </div>   
-    <!-- page-body-wrapper ends -->
+    </div>
   </div>
-  <!-- container-scroller -->
 
-  <!-- plugins:js -->
+  <!-- JavaScript -->
   <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
   <script src="../template2/vendors/js/vendor.bundle.base.js"></script>
-  <!-- endinject -->
-  <!-- Plugin js for this page -->
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
-  <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
-  <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap4.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-  <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-  <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
-  <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
-  <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap4.min.js"></script>
-
-  <!-- End plugin js for this page -->
-  <!-- inject:js -->
   <script src="../template2/js/off-canvas.js"></script>
   <script src="../template2/js/hoverable-collapse.js"></script>
   <script src="../template2/js/template.js"></script>
-  <script src="../template2/js/settings.js"></script>
-  <!-- endinject -->
 
   <script>
-    // Print function
-    function printTable() {
-        window.print();
-    }
-
-    // Export to Excel function
-    function exportTableToExcel(tableId) {
-        var table = document.getElementById(tableId);
-        var html = table.outerHTML;
-        var url = 'data:application/vnd.ms-excel;charset=utf-8,' + encodeURIComponent(html);
-        var downloadLink = document.createElement("a");
-        downloadLink.href = url;
-        downloadLink.download = "rekap_data.xls";
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        document.body.removeChild(downloadLink);
-    }
-
     $(document).ready(function() {
-        // Initialize DataTable for rekapTable
-        $('#rekapTable').DataTable({
-            responsive: true,
-            dom: 'Blfrtip',
-            lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
-            buttons: [
-                {
-                    extend: 'copy',
-                    text: '<i class="ti-clipboard"></i> Copy',
-                    className: 'btn btn-info btn-sm',
-                    exportOptions: {
-                        columns: ':visible'
-                    }
-                },
-                {
-                    extend: 'excel',
-                    text: '<i class="ti-file"></i> Excel',
-                    className: 'btn btn-success btn-sm',
-                    exportOptions: {
-                        columns: ':visible'
-                    }
-                },
-                {
-                    extend: 'print',
-                    text: '<i class="ti-printer"></i> Print',
-                    className: 'btn btn-dark btn-sm',
-                    exportOptions: {
-                        columns: ':visible'
-                    }
-                }
-            ],
-            language: {
-                search: "Cari:",
-                lengthMenu: "Tampilkan _MENU_ data per halaman",
-                zeroRecords: "Tidak ada data yang ditemukan",
-                info: "Menampilkan halaman _PAGE_ dari _PAGES_",
-                infoEmpty: "Tidak ada data yang tersedia",
-                infoFiltered: "(difilter dari _MAX_ total data)",
-                paginate: {
-                    first: "Pertama",
-                    last: "Terakhir",
-                    next: "Selanjutnya",
-                    previous: "Sebelumnya"
-                }
-            }
+      console.log('Initializing DataTables...');
+      
+      // Initialize DataTable for simpanan
+      try {
+        $('#tableSimpanan').DataTable({
+          "paging": true,
+          "searching": true,
+          "ordering": true,
+          "info": true,
+          "responsive": true
         });
+        console.log('DataTable Simpanan initialized successfully');
+      } catch (error) {
+        console.error('DataTable Simpanan error:', error);
+      }
 
-        // Initialize DataTable for rekapBulanan
-        $('#rekapBulanan').DataTable({
-            responsive: true,
-            paging: false,
-            searching: false,
-            info: false,
-            ordering: false
+      // Initialize DataTable for pinjaman
+      try {
+        $('#tablePinjaman').DataTable({
+          "paging": true,
+          "searching": true,
+          "ordering": true,
+          "info": true,
+          "responsive": true
         });
+      } catch (error) {
+        console.error('DataTable Pinjaman error:', error);
+      }
+
+      // Initialize DataTable for angsuran
+      try {
+        $('#tableAngsuran').DataTable({
+          "paging": true,
+          "searching": true,
+          "ordering": true,
+          "info": true,
+          "responsive": true
+        });
+      } catch (error) {
+        console.error('DataTable Angsuran error:', error);
+      }
+
+      // Simple table for rekap bulanan
+      try {
+        $('#rekapBulanan').DataTable({
+          "paging": false,
+          "searching": false,
+          "ordering": false,
+          "info": false
+        });
+      } catch (error) {
+        console.error('Rekap DataTable error:', error);
+      }
     });
+
+    function printTable() {
+      window.print();
+    }
+
+    function exportToExcel(tableId) {
+      const table = document.getElementById(tableId);
+      const html = table.outerHTML;
+      const url = 'data:application/vnd.ms-excel;charset=utf-8,' + encodeURIComponent(html);
+      const downloadLink = document.createElement("a");
+      downloadLink.href = url;
+      downloadLink.download = "rekap_" + tableId + "_<?= $selected_month ?>.xls";
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+    }
   </script>
 </body>
 </html>
