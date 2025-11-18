@@ -1,6 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
-<?php include 'cek_login.php'; ?>
+<?php 
+// cek_login.php - Pastikan file ini ada di directory yang sama
+session_start();
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../login.php");
+    exit();
+}
+
+// Koneksi database sederhana jika koneksi.php tidak ada
+$host = "localhost";
+$username = "root";
+$password = "";
+$database = "koperasi";
+
+$koneksi = mysqli_connect($host, $username, $password, $database);
+if (!$koneksi) {
+    die("Koneksi database gagal: " . mysqli_connect_error());
+}
+?>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -18,6 +36,7 @@
     .summary-card {
       border-left: 4px solid #4CAF50;
       background: #f8fff8;
+      margin-bottom: 20px;
     }
     .summary-card.warning {
       border-left: 4px solid #ff9800;
@@ -40,6 +59,31 @@
     }
     .text-right {
       text-align: right;
+    }
+    .card {
+      margin-bottom: 30px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .badge-success {
+      background-color: #28a745;
+    }
+    .badge-warning {
+      background-color: #ffc107;
+      color: #212529;
+    }
+    .dropdown-toggle::after {
+      display: inline-block;
+      margin-left: 0.255em;
+      vertical-align: 0.255em;
+      content: "";
+      border-top: 0.3em solid;
+      border-right: 0.3em solid transparent;
+      border-bottom: 0;
+      border-left: 0.3em solid transparent;
+    }
+    .active-month {
+      background-color: #007bff;
+      color: white;
     }
   </style>
 </head>
@@ -81,8 +125,41 @@
 
     <!-- Main Content -->
     <div class="container-fluid page-body-wrapper">
-      <!-- Sidebar -->
-      <?php include '../layout/sidebar.php'; ?>
+      <!-- Sidebar Sederhana -->
+      <nav class="sidebar sidebar-offcanvas" id="sidebar">
+        <ul class="nav">
+          <li class="nav-item">
+            <a class="nav-link" href="index.html">
+              <i class="ti-home menu-icon"></i>
+              <span class="menu-title">Dashboard</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="rekap_bulanan.php">
+              <i class="ti-bar-chart menu-icon"></i>
+              <span class="menu-title">Rekap Bulanan</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="data_anggota.php">
+              <i class="ti-user menu-icon"></i>
+              <span class="menu-title">Data Anggota</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="data_simpanan.php">
+              <i class="ti-wallet menu-icon"></i>
+              <span class="menu-title">Data Simpanan</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="data_pinjaman.php">
+              <i class="ti-money menu-icon"></i>
+              <span class="menu-title">Data Pinjaman</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
 
       <!-- Main Panel -->
       <div class="main-panel">
@@ -99,13 +176,20 @@
                   <div class="justify-content-end d-flex">
                     <div class="dropdown flex-md-grow-1 flex-xl-grow-0">
                       <button class="btn btn-sm btn-light bg-white dropdown-toggle" type="button" id="monthDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="ti-calendar"></i> <?php echo date('F Y'); ?>
+                        <i class="ti-calendar"></i> 
+                        <?php 
+                        $selected_month = isset($_GET['month']) ? $_GET['month'] : date('Y-m');
+                        echo date('F Y', strtotime($selected_month . '-01'));
+                        ?>
                       </button>
                       <div class="dropdown-menu dropdown-menu-right" aria-labelledby="monthDropdown">
                         <?php
+                        // Generate 12 bulan terakhir
                         for ($i = 0; $i < 12; $i++) {
-                          $month = date('F Y', strtotime("-$i months"));
-                          echo '<a class="dropdown-item" href="?month=' . date('Y-m', strtotime("-$i months")) . '">' . $month . '</a>';
+                            $month_value = date('Y-m', strtotime("-$i months"));
+                            $month_name = date('F Y', strtotime("-$i months"));
+                            $is_active = ($selected_month == $month_value) ? 'active-month' : '';
+                            echo '<a class="dropdown-item ' . $is_active . '" href="?month=' . $month_value . '">' . $month_name . '</a>';
                         }
                         ?>
                       </div>
@@ -117,8 +201,6 @@
           </div>
 
           <?php
-          require_once '../koneksi.php';
-          
           // Get selected month from URL or use current month
           $selected_month = isset($_GET['month']) ? $_GET['month'] : date('Y-m');
           $month_start = $selected_month . '-01';
@@ -139,84 +221,64 @@
           $data_transaksi_angsuran = [];
           
           try {
-            // DEBUG: Check what data exists in pinjaman table
-            $debug_pinjaman_query = "SELECT id, anggota_id, status, jumlah_pinjaman, tanggal_pengajuan, tanggal_acc FROM pinjaman WHERE status = 'acc'";
-            $debug_result = mysqli_query($koneksi, $debug_pinjaman_query);
-            $debug_data = [];
-            while ($row = mysqli_fetch_assoc($debug_result)) {
-                $debug_data[] = $row;
-            }
-            echo "<!-- Debug Pinjaman ACC Data: " . json_encode($debug_data) . " -->";
-
-            // 1. GET TOTAL ANGGOTA
+            // 1. GET TOTAL ANGGOTA (tetap semua, tidak difilter bulan)
             $anggota_query = "SELECT COUNT(*) as total FROM anggota";
             $result_anggota = mysqli_query($koneksi, $anggota_query);
             if ($result_anggota) {
               $anggota_data = mysqli_fetch_assoc($result_anggota);
               $data_rekap['total_anggota'] = $anggota_data['total'];
-              echo "<!-- Total Anggota: " . $data_rekap['total_anggota'] . " -->";
             }
 
-            // 2. GET TOTAL SIMPANAN (dari tabel simpanan)
+            // 2. GET TOTAL SIMPANAN (difilter berdasarkan bulan)
             $simpanan_query = "SELECT COALESCE(SUM(nominal), 0) as total 
                               FROM simpanan 
-                              WHERE (tanggal BETWEEN '$month_start' AND '$month_end' OR tanggal = '0000-00-00')";
-            
-            echo "<!-- Simpanan Query: $simpanan_query -->";
+                              WHERE tanggal BETWEEN '$month_start' AND '$month_end'";
             
             $result_simpanan = mysqli_query($koneksi, $simpanan_query);
             if ($result_simpanan) {
                 $simpanan_data = mysqli_fetch_assoc($result_simpanan);
                 $data_rekap['total_simpanan'] = $simpanan_data['total'];
-                echo "<!-- Total Simpanan: " . $data_rekap['total_simpanan'] . " -->";
             }
 
-            // 3. GET PINJAMAN ACC - VERSI YANG BENAR
-            // Mengambil SEMUA pinjaman dengan status 'acc' (tidak difilter bulan)
+            // 3. GET PINJAMAN ACC (difilter berdasarkan bulan - tanggal pengajuan atau tanggal ACC)
             $pinjaman_query = "SELECT COALESCE(SUM(jumlah_pinjaman), 0) as total 
                               FROM pinjaman 
-                              WHERE status = 'acc'";
-            
-            echo "<!-- Pinjaman ACC Query: $pinjaman_query -->";
+                              WHERE status = 'acc' 
+                              AND (tanggal_pengajuan BETWEEN '$month_start' AND '$month_end' 
+                                   OR tanggal_acc BETWEEN '$month_start' AND '$month_end')";
             
             $result_pinjaman = mysqli_query($koneksi, $pinjaman_query);
             if ($result_pinjaman) {
                 $pinjaman_data = mysqli_fetch_assoc($result_pinjaman);
                 $data_rekap['pinjaman_acc'] = $pinjaman_data['total'];
-                echo "<!-- Pinjaman ACC Total: " . $data_rekap['pinjaman_acc'] . " -->";
-            } else {
-                echo "<!-- Pinjaman query error: " . mysqli_error($koneksi) . " -->";
             }
 
-            // 4. GET ANGSURAN LUNAS (dari tabel angsuran)
+            // 4. GET ANGSURAN LUNAS (difilter berdasarkan bulan - tanggal pelunasan)
             $angsuran_query = "SELECT 
                               COALESCE(SUM(nominal), 0) as angsuran,
                               COALESCE(SUM(bunga), 0) as bunga
                               FROM angsuran 
-                              WHERE status = 'lunas'";
+                              WHERE status = 'lunas' 
+                              AND tgl_pelunasan BETWEEN '$month_start' AND '$month_end'";
             
             $result_angsuran = mysqli_query($koneksi, $angsuran_query);
             if ($result_angsuran) {
                 $angsuran_data = mysqli_fetch_assoc($result_angsuran);
                 $data_rekap['angsuran_lunas'] = $angsuran_data['angsuran'];
                 $data_rekap['bunga_lunas'] = $angsuran_data['bunga'];
-                echo "<!-- Angsuran Lunas: " . $data_rekap['angsuran_lunas'] . " -->";
-                echo "<!-- Bunga Lunas: " . $data_rekap['bunga_lunas'] . " -->";
             }
             
             // Calculate saldo akhir
             $data_rekap['saldo_akhir'] = ($data_rekap['total_simpanan'] + $data_rekap['angsuran_lunas'] + $data_rekap['bunga_lunas']) - $data_rekap['pinjaman_acc'];
             
-            echo "<!-- Saldo Akhir: " . $data_rekap['saldo_akhir'] . " -->";
-            
-            // 5. GET DETAILED TRANSACTION DATA - SIMPANAN
+            // 5. GET DETAILED TRANSACTION DATA - SIMPANAN (difilter bulan)
             $transaksi_simpanan_query = "SELECT 
                                         s.tanggal,
                                         a.nama as nama_anggota,
                                         s.nominal
                                         FROM simpanan s
                                         LEFT JOIN anggota a ON s.anggota_id = a.id
-                                        WHERE (s.tanggal BETWEEN '$month_start' AND '$month_end' OR s.tanggal = '0000-00-00')
+                                        WHERE s.tanggal BETWEEN '$month_start' AND '$month_end'
                                         ORDER BY s.tanggal DESC, s.id DESC";
             
             $result_simpanan_detail = mysqli_query($koneksi, $transaksi_simpanan_query);
@@ -226,7 +288,7 @@
                 }
             }
 
-            // 6. GET DETAILED TRANSACTION DATA - PINJAMAN
+            // 6. GET DETAILED TRANSACTION DATA - PINJAMAN (difilter bulan)
             $transaksi_pinjaman_query = "SELECT 
                                         p.tanggal_pengajuan,
                                         p.tanggal_acc,
@@ -236,6 +298,8 @@
                                         FROM pinjaman p
                                         LEFT JOIN anggota a ON p.anggota_id = a.id
                                         WHERE p.status = 'acc'
+                                        AND (p.tanggal_pengajuan BETWEEN '$month_start' AND '$month_end' 
+                                             OR p.tanggal_acc BETWEEN '$month_start' AND '$month_end')
                                         ORDER BY p.tanggal_pengajuan DESC, p.id DESC";
             
             $result_pinjaman_detail = mysqli_query($koneksi, $transaksi_pinjaman_query);
@@ -245,7 +309,7 @@
                 }
             }
 
-            // 7. GET DETAILED TRANSACTION DATA - ANGSURAN
+            // 7. GET DETAILED TRANSACTION DATA - ANGSURAN (difilter bulan)
             $transaksi_angsuran_query = "SELECT 
                                         ag.tgl_pelunasan,
                                         a.nama as nama_anggota,
@@ -257,6 +321,7 @@
                                         LEFT JOIN pinjaman p ON ag.pinjaman_id = p.id
                                         LEFT JOIN anggota a ON p.anggota_id = a.id
                                         WHERE ag.status = 'lunas'
+                                        AND ag.tgl_pelunasan BETWEEN '$month_start' AND '$month_end'
                                         ORDER BY ag.tgl_pelunasan DESC, ag.id DESC";
             
             $result_angsuran_detail = mysqli_query($koneksi, $transaksi_angsuran_query);
@@ -268,7 +333,6 @@
             
           } catch (Exception $e) {
             error_log("Database error: " . $e->getMessage());
-            echo "<!-- Exception: " . $e->getMessage() . " -->";
           }
           ?>
 
@@ -394,7 +458,7 @@
               <div class="card">
                 <div class="card-body">
                   <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4 class="card-title mb-0">Detail Transaksi Simpanan</h4>
+                    <h4 class="card-title mb-0">Detail Transaksi Simpanan - <?= date('F Y', strtotime($month_start)) ?></h4>
                     <div>
                       <button onclick="printTable()" class="btn btn-primary btn-sm">
                         <i class="ti-printer"></i> Print
@@ -434,7 +498,7 @@
                           <tr>
                             <td colspan="4" class="text-center text-muted py-4">
                               <i class="ti-info-alt" style="font-size: 2rem;"></i><br>
-                              Tidak ada data simpanan untuk bulan ini
+                              Tidak ada data simpanan untuk bulan <?= date('F Y', strtotime($month_start)) ?>
                             </td>
                           </tr>
                         <?php endif; ?>
@@ -451,7 +515,7 @@
             <div class="col-md-12 grid-margin stretch-card">
               <div class="card">
                 <div class="card-body">
-                  <h4 class="card-title mb-3">Detail Pinjaman ACC</h4>
+                  <h4 class="card-title mb-3">Detail Pinjaman ACC - <?= date('F Y', strtotime($month_start)) ?></h4>
                   <div class="table-responsive">
                     <table id="tablePinjaman" class="table table-bordered table-hover">
                       <thead class="thead-dark">
@@ -480,7 +544,7 @@
                               <td><?= htmlspecialchars($nama_anggota) ?></td>
                               <td class="text-right">Rp <?= number_format($pinjaman['jumlah_pinjaman'] ?? 0, 0, ',', '.') ?></td>
                               <td>
-                                <span class="badge badge-<?= $pinjaman['status'] == 'acc' ? 'success' : 'warning' ?>">
+                                <span class="badge badge-success">
                                   <?= strtoupper($pinjaman['status'] ?? 'pending') ?>
                                 </span>
                               </td>
@@ -490,7 +554,7 @@
                           <tr>
                             <td colspan="6" class="text-center text-muted py-4">
                               <i class="ti-info-alt" style="font-size: 2rem;"></i><br>
-                              Tidak ada data pinjaman ACC
+                              Tidak ada data pinjaman ACC untuk bulan <?= date('F Y', strtotime($month_start)) ?>
                             </td>
                           </tr>
                         <?php endif; ?>
@@ -507,7 +571,7 @@
             <div class="col-md-12 grid-margin stretch-card">
               <div class="card">
                 <div class="card-body">
-                  <h4 class="card-title mb-3">Detail Transaksi Angsuran Lunas</h4>
+                  <h4 class="card-title mb-3">Detail Transaksi Angsuran Lunas - <?= date('F Y', strtotime($month_start)) ?></h4>
                   <div class="table-responsive">
                     <table id="tableAngsuran" class="table table-bordered table-hover">
                       <thead class="thead-dark">
@@ -537,8 +601,8 @@
                               <td class="text-right">Rp <?= number_format($angsuran['nominal'] ?? 0, 0, ',', '.') ?></td>
                               <td class="text-right">Rp <?= number_format($angsuran['bunga'] ?? 0, 0, ',', '.') ?></td>
                               <td>
-                                <span class="badge badge-<?= $angsuran['status'] == 'lunas' ? 'success' : 'warning' ?>">
-                                  <?= $angsuran['status'] == 'lunas' ? 'LUNAS' : 'BELUM LUNAS' ?>
+                                <span class="badge badge-success">
+                                  LUNAS
                                 </span>
                               </td>
                             </tr>
@@ -547,7 +611,7 @@
                           <tr>
                             <td colspan="7" class="text-center text-muted py-4">
                               <i class="ti-info-alt" style="font-size: 2rem;"></i><br>
-                              Tidak ada data angsuran lunas
+                              Tidak ada data angsuran lunas untuk bulan <?= date('F Y', strtotime($month_start)) ?>
                             </td>
                           </tr>
                         <?php endif; ?>
@@ -580,6 +644,8 @@
   <script src="../template2/vendors/js/vendor.bundle.base.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../template2/js/off-canvas.js"></script>
   <script src="../template2/js/hoverable-collapse.js"></script>
   <script src="../template2/js/template.js"></script>
@@ -595,7 +661,21 @@
           "searching": true,
           "ordering": true,
           "info": true,
-          "responsive": true
+          "responsive": true,
+          "language": {
+            "search": "Cari:",
+            "lengthMenu": "Tampilkan _MENU_ data",
+            "zeroRecords": "Tidak ada data yang ditemukan",
+            "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+            "infoEmpty": "Menampilkan 0 sampai 0 dari 0 data",
+            "infoFiltered": "(difilter dari _MAX_ total data)",
+            "paginate": {
+              "first": "Pertama",
+              "last": "Terakhir",
+              "next": "Selanjutnya",
+              "previous": "Sebelumnya"
+            }
+          }
         });
         console.log('DataTable Simpanan initialized successfully');
       } catch (error) {
@@ -639,6 +719,9 @@
       } catch (error) {
         console.error('Rekap DataTable error:', error);
       }
+
+      // Fix dropdown functionality
+      $('.dropdown-toggle').dropdown();
     });
 
     function printTable() {
@@ -659,3 +742,7 @@
   </script>
 </body>
 </html>
+<?php
+// Close database connection
+mysqli_close($koneksi);
+?>
