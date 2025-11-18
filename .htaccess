@@ -1,0 +1,59 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# KOPERASI APPLICATION - APACHE CONFIGURATION (.htaccess)
+# ═══════════════════════════════════════════════════════════════════════════════
+# Simplified dan compatible dengan XAMPP Apache 2.4.58
+
+# Prevent directory listing
+Options -Indexes
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CACHE CONTROL FOR STATIC FILES
+# ═════════════════════════════════════════════════════════════════════════════════
+
+<IfModule mod_headers.c>
+    # Cache static assets untuk 30 hari
+    <FilesMatch "\.(jpg|jpeg|png|gif|ico|css|js|svg|woff|woff2|ttf|eot)$">
+        Header set Cache-Control "max-age=2592000, public"
+    </FilesMatch>
+    
+    # No cache untuk PHP files
+    <FilesMatch "\.php$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+    </FilesMatch>
+</IfModule>
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# GZIP COMPRESSION
+# ═════════════════════════════════════════════════════════════════════════════════
+
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/xml
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/json
+</IfModule>
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# URL REWRITING - Handle 404 errors
+# ═════════════════════════════════════════════════════════════════════════════════
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /koperasi/
+    
+    # Jika request adalah file atau directory yang exist, jangan rewrite
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    
+    # Jika request ke admin folder dan bukan file/dir, redirect ke 404
+    RewriteRule ^admin/(.*)$ admin/404.php [L,QSA]
+    
+    # Jika request ke URL apapun yang tidak ada (di root koperasi), redirect ke 404
+    RewriteRule ^[a-zA-Z0-9_\-]+/?$ admin/404.php [L,QSA]
+</IfModule>
+
+# ═══════════════════════════════════════════════════════════════════════════════

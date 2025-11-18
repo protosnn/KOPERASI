@@ -1,0 +1,164 @@
+═══════════════════════════════════════════════════════════════════════════════════
+                   📚 QUICK REFERENCE - HALAMAN 404
+                       Single Page Guide
+═══════════════════════════════════════════════════════════════════════════════════
+
+🎯 USAGE SUMMARY
+═════════════════════════════════════════════════════════════════════════════════
+
+METHOD 1: AUTOMATIC (Apache .htaccess) - DO NOTHING!
+────────────────────────────────────────────
+✓ Already configured in .htaccess
+✓ 404 errors automatically show custom page
+✓ No code needed
+
+Test: Access invalid URL → should see custom 404 page
+
+
+METHOD 2: MANUAL PHP REDIRECT - ADD TO YOUR CODE
+─────────────────────────────────────────────────
+
+// At top of file
+include '../proses/error_handler.php';
+
+// When error occurs
+show_404('page_name', 'Error reason');
+
+
+METHOD 3: QUICK REDIRECT - ONE LINER
+──────────────────────────────────────
+
+header('Location: /koperasi/admin/404.php');
+exit();
+
+═════════════════════════════════════════════════════════════════════════════════
+
+⚡ COMMON USAGE PATTERNS
+═════════════════════════════════════════════════════════════════════════════════
+
+PATTERN 1: Validate GET parameter
+──────────────────────────────────
+
+<?php
+include '../proses/error_handler.php';
+
+$id = $_GET['id'] ?? '';
+if (!$id || !is_numeric($id)) {
+    show_404('anggota', 'ID tidak valid');
+}
+
+// Continue with code
+?>
+
+
+PATTERN 2: Check database record exists
+─────────────────────────────────────────
+
+<?php
+include '../proses/error_handler.php';
+
+$query = "SELECT * FROM anggota WHERE id = ?";
+$stmt = mysqli_prepare($koneksi, $query);
+mysqli_stmt_bind_param($stmt, "i", $_GET['id']);
+mysqli_stmt_execute($stmt);
+$result = mysqli_stmt_get_result($stmt);
+
+if (mysqli_num_rows($result) == 0) {
+    show_404('anggota', 'Data tidak ditemukan');
+}
+
+// Continue with code
+?>
+
+
+PATTERN 3: Validate page selection
+──────────────────────────────────
+
+<?php
+include '../proses/error_handler.php';
+
+$valid_pages = ['dashboard', 'anggota', 'pinjaman'];
+if (!in_array($_GET['page'] ?? '', $valid_pages)) {
+    show_404('page', $_GET['page'] ?? 'Unknown');
+}
+
+// Continue with code
+?>
+
+
+PATTERN 4: Redirect with message
+──────────────────────────────────
+
+<?php
+include '../proses/error_handler.php';
+
+// If error, redirect with message
+if ($error_condition) {
+    redirect_with_error('dashboard.php', 'Terjadi error');
+}
+
+// If success, redirect with message
+if ($success_condition) {
+    redirect_with_success('dashboard.php', 'Sukses disimpan');
+}
+
+?>
+
+═════════════════════════════════════════════════════════════════════════════════
+
+📁 FILES REFERENCE
+═════════════════════════════════════════════════════════════════════════════════
+
+admin/404.php
+├─ HTML/CSS structure
+├─ Error details display
+├─ Navigation links
+└─ Styling & animations
+
+proses/error_handler.php
+├─ show_404() function
+├─ redirect_with_error() function
+├─ redirect_with_success() function
+├─ is_valid_page() function
+└─ Error logging
+
+.htaccess
+├─ ErrorDocument 404 mapping
+├─ Security headers
+├─ Cache control
+└─ Compression
+
+═════════════════════════════════════════════════════════════════════════════════
+
+💡 QUICK TIPS
+═════════════════════════════════════════════════════════════════════════════════
+
+✓ Always include error_handler.php at top of critical pages
+✓ Use show_404() instead of die() for better UX
+✓ Sanitize output with htmlspecialchars()
+✓ Log errors untuk debugging
+✓ Test 404 page on mobile
+✓ Update navigation links as needed
+
+═════════════════════════════════════════════════════════════════════════════════
+
+🧪 QUICK TEST
+═════════════════════════════════════════════════════════════════════════════════
+
+1. Access invalid file:
+   http://localhost/koperasi/tidak-ada.php
+   → Should see 404 page ✓
+
+2. Access invalid parameter:
+   http://localhost/koperasi/admin/anggota.php?edit=999999
+   → Should show error if ID doesn't exist ✓
+
+3. Test button:
+   Click any button on 404 page
+   → Should work ✓
+
+4. Test responsive:
+   F12 → Toggle device toolbar → Check on mobile
+   → Should be responsive ✓
+
+═════════════════════════════════════════════════════════════════════════════════
