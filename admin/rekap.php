@@ -149,14 +149,6 @@ try {
 } catch (Exception $e) {
     error_log("Database error: " . $e->getMessage());
 }
-
-// Debug info untuk memastikan filter bekerja
-error_log("Selected Month: " . $selected_month);
-error_log("Month Start: " . $month_start);
-error_log("Month End: " . $month_end);
-error_log("Total Simpanan: " . $data_rekap['total_simpanan']);
-error_log("Total Pinjaman ACC: " . $data_rekap['pinjaman_acc']);
-error_log("Total Angsuran: " . $data_rekap['angsuran_lunas']);
 ?>
 <head>
   <!-- Required meta tags -->
@@ -172,8 +164,6 @@ error_log("Total Angsuran: " . $data_rekap['angsuran_lunas']);
   <link rel="stylesheet" href="../template2/vendors/datatables.net-bs4/dataTables.bootstrap4.css">
   <link rel="stylesheet" href="../template2/vendors/ti-icons/css/themify-icons.css">
   <link rel="stylesheet" type="text/css" href="../template2/js/select.dataTables.min.css">
-  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.2.3/css/buttons.bootstrap4.min.css">
-  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap4.min.css">
   <style>
     .badge {
       padding: 6px 10px;
@@ -219,23 +209,6 @@ error_log("Total Angsuran: " . $data_rekap['angsuran_lunas']);
       margin-bottom: 30px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    .dropdown-toggle::after {
-      display: inline-block;
-      margin-left: 0.255em;
-      vertical-align: 0.255em;
-      content: "";
-      border-top: 0.3em solid;
-      border-right: 0.3em solid transparent;
-      border-bottom: 0;
-      border-left: 0.3em solid transparent;
-    }
-    .active-month {
-      background-color: #007bff;
-      color: white;
-    }
-    .month-dropdown {
-      min-width: 200px;
-    }
     @media print {
       .no-print {
         display: none !important;
@@ -244,14 +217,6 @@ error_log("Total Angsuran: " . $data_rekap['angsuran_lunas']);
         box-shadow: none !important;
         border: 1px solid #ddd !important;
       }
-    }
-    .debug-info {
-      background: #fff3cd;
-      border: 1px solid #ffeaa7;
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 5px;
-      font-size: 12px;
     }
   </style>
   <!-- End plugin css for this page -->
@@ -327,51 +292,13 @@ error_log("Total Angsuran: " . $data_rekap['angsuran_lunas']);
           <div class="row">
             <div class="col-md-12 grid-margin">
               <div class="row">
-                <div class="col-12 col-xl-8 mb-2 mb-xl-0">
+                <div class="col-12 col-xl-12 mb-2 mb-xl-0">
                   <h1 class="font-weight-bold">Rekap Bulanan Koperasi</h1>
                   <h6 class="font-weight-normal mb-0">Dashboard Rekapitulasi Keuangan Bulanan - <?= date('F Y', strtotime($month_start)) ?></h6>
-                </div>
-                <div class="col-12 col-xl-4">
-                  <div class="justify-content-end d-flex">
-                    <div class="dropdown flex-md-grow-1 flex-xl-grow-0">
-                      <button class="btn btn-sm btn-light bg-white dropdown-toggle month-dropdown no-print" type="button" id="monthDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="ti-calendar mr-2"></i> 
-                        <?= date('F Y', strtotime($month_start)) ?>
-                      </button>
-                      <div class="dropdown-menu dropdown-menu-right month-dropdown" aria-labelledby="monthDropdown">
-                        <?php
-                        // Generate 12 bulan terakhir
-                        for ($i = 0; $i < 12; $i++) {
-                            $month_value = date('Y-m', strtotime("-$i months"));
-                            $month_name = date('F Y', strtotime("-$i months"));
-                            $is_active = ($selected_month == $month_value) ? 'active-month' : '';
-                            echo '<a class="dropdown-item ' . $is_active . '" href="rekap_bulanan.php?month=' . $month_value . '">' . $month_name . '</a>';
-                        }
-                        ?>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
           </div>
-
-          <!-- Debug Info (Hanya tampil di development) -->
-          <?php if (false): // Set true untuk debug ?>
-          <div class="row debug-info no-print">
-            <div class="col-12">
-              <strong>Debug Info:</strong><br>
-              Selected Month: <?= $selected_month ?><br>
-              Month Range: <?= $month_start ?> to <?= $month_end ?><br>
-              Total Simpanan: <?= $data_rekap['total_simpanan'] ?><br>
-              Total Pinjaman ACC: <?= $data_rekap['pinjaman_acc'] ?><br>
-              Total Angsuran: <?= $data_rekap['angsuran_lunas'] ?><br>
-              Count Simpanan: <?= count($data_transaksi_simpanan) ?><br>
-              Count Pinjaman: <?= count($data_transaksi_pinjaman) ?><br>
-              Count Angsuran: <?= count($data_transaksi_angsuran) ?>
-            </div>
-          </div>
-          <?php endif; ?>
 
           <!-- Summary Cards -->
           <div class="row">
@@ -449,7 +376,7 @@ error_log("Total Angsuran: " . $data_rekap['angsuran_lunas']);
                 <div class="card-body">
                   <h4 class="card-title mb-4">Rekap Bulanan - <?= date('F Y', strtotime($month_start)) ?></h4>
                   <div class="table-responsive">
-                    <table id="rekapBulanan" class="table table-bordered table-hover">
+                    <table class="table table-bordered table-hover">
                       <thead class="thead-dark">
                         <tr>
                           <th>Keterangan</th>
@@ -507,7 +434,7 @@ error_log("Total Angsuran: " . $data_rekap['angsuran_lunas']);
                   </div>
                   
                   <div class="table-responsive">
-                    <table id="tableSimpanan" class="table table-bordered table-hover">
+                    <table class="table table-bordered table-hover">
                       <thead class="thead-dark">
                         <tr>
                           <th>No</th>
@@ -569,7 +496,7 @@ error_log("Total Angsuran: " . $data_rekap['angsuran_lunas']);
                     </div>
                   </div>
                   <div class="table-responsive">
-                    <table id="tablePinjaman" class="table table-bordered table-hover">
+                    <table class="table table-bordered table-hover">
                       <thead class="thead-dark">
                         <tr>
                           <th>No</th>
@@ -641,7 +568,7 @@ error_log("Total Angsuran: " . $data_rekap['angsuran_lunas']);
                     </div>
                   </div>
                   <div class="table-responsive">
-                    <table id="tableAngsuran" class="table table-bordered table-hover">
+                    <table class="table table-bordered table-hover">
                       <thead class="thead-dark">
                         <tr>
                           <th>No</th>
@@ -716,10 +643,7 @@ error_log("Total Angsuran: " . $data_rekap['angsuran_lunas']);
   </div>
 
   <!-- JavaScript -->
-  <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
   <script src="../template2/vendors/js/vendor.bundle.base.js"></script>
-  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-  <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../template2/js/off-canvas.js"></script>
@@ -727,68 +651,27 @@ error_log("Total Angsuran: " . $data_rekap['angsuran_lunas']);
   <script src="../template2/js/template.js"></script>
 
   <script>
-    $(document).ready(function() {
-      // Initialize DataTables
-      $('#tableSimpanan').DataTable({
-        "paging": true,
-        "searching": true,
-        "ordering": true,
-        "info": true,
-        "responsive": true,
-        "language": {
-          "search": "Cari:",
-          "lengthMenu": "Tampilkan _MENU_ data",
-          "zeroRecords": "Tidak ada data yang ditemukan",
-          "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
-          "infoEmpty": "Menampilkan 0 sampai 0 dari 0 data",
-          "infoFiltered": "(difilter dari _MAX_ total data)",
-          "paginate": {
-            "first": "Pertama",
-            "last": "Terakhir",
-            "next": "Selanjutnya",
-            "previous": "Sebelumnya"
-          }
-        }
-      });
-
-      $('#tablePinjaman').DataTable({
-        "paging": true,
-        "searching": true,
-        "ordering": true,
-        "info": true,
-        "responsive": true
-      });
-
-      $('#tableAngsuran').DataTable({
-        "paging": true,
-        "searching": true,
-        "ordering": true,
-        "info": true,
-        "responsive": true
-      });
-
-      $('#rekapBulanan').DataTable({
-        "paging": false,
-        "searching": false,
-        "ordering": false,
-        "info": false
-      });
-
-      // Fix dropdown functionality
-      $('.dropdown-toggle').dropdown();
-    });
-
     function printTable() {
       window.print();
     }
 
     function exportToExcel(tableId) {
-      const table = document.getElementById(tableId);
-      const html = table.outerHTML;
+      // Create a simple table export without DataTables
+      const tables = document.querySelectorAll('table');
+      let html = '<html><head><meta charset="utf-8"><title>Rekap Bulanan <?= date("F Y", strtotime($month_start)) ?></title></head><body>';
+      html += '<h1>Rekap Bulanan Koperasi - <?= date("F Y", strtotime($month_start)) ?></h1>';
+      
+      tables.forEach(table => {
+        html += table.outerHTML;
+        html += '<br><br>';
+      });
+      
+      html += '</body></html>';
+      
       const url = 'data:application/vnd.ms-excel;charset=utf-8,' + encodeURIComponent(html);
       const downloadLink = document.createElement("a");
       downloadLink.href = url;
-      downloadLink.download = "rekap_" + tableId + "_<?= $selected_month ?>.xls";
+      downloadLink.download = "rekap_bulanan_<?= $selected_month ?>.xls";
       document.body.appendChild(downloadLink);
       downloadLink.click();
       document.body.removeChild(downloadLink);
