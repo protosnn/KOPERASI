@@ -18,11 +18,6 @@ if (!$koneksi) {
     die("Koneksi database gagal: " . mysqli_connect_error());
 }
 
-// Get selected month from URL or use current month
-$selected_month = isset($_GET['month']) ? $_GET['month'] : date('Y-m');
-$month_start = $selected_month . '-01';
-$month_end = date('Y-m-t', strtotime($month_start));
-
 // Initialize variables
 $data_rekap = [
     'total_anggota' => 0,
@@ -38,7 +33,7 @@ $data_transaksi_pinjaman = [];
 $data_transaksi_angsuran = [];
 
 try {
-    // 1. GET TOTAL ANGGOTA (tidak difilter bulan karena data master)
+    // 1. GET TOTAL ANGGOTA
     $anggota_query = "SELECT COUNT(*) as total FROM anggota";
     $result_anggota = mysqli_query($koneksi, $anggota_query);
     if ($result_anggota) {
@@ -46,10 +41,8 @@ try {
         $data_rekap['total_anggota'] = $anggota_data['total'];
     }
 
-    // 2. GET TOTAL SIMPANAN (hanya transaksi di bulan yang dipilih)
-    $simpanan_query = "SELECT COALESCE(SUM(nominal), 0) as total 
-                      FROM simpanan 
-                      WHERE DATE(tanggal) BETWEEN '$month_start' AND '$month_end'";
+    // 2. GET TOTAL SIMPANAN (semua data tanpa filter bulan)
+    $simpanan_query = "SELECT COALESCE(SUM(nominal), 0) as total FROM simpanan";
     
     $result_simpanan = mysqli_query($koneksi, $simpanan_query);
     if ($result_simpanan) {
@@ -57,11 +50,8 @@ try {
         $data_rekap['total_simpanan'] = $simpanan_data['total'];
     }
 
-    // 3. GET PINJAMAN ACC (hanya pinjaman yang di-ACC di bulan yang dipilih)
-    $pinjaman_query = "SELECT COALESCE(SUM(jumlah_pinjaman), 0) as total 
-                      FROM pinjaman 
-                      WHERE status = 'acc' 
-                      AND DATE(tanggal_acc) BETWEEN '$month_start' AND '$month_end'";
+    // 3. GET PINJAMAN ACC (semua data tanpa filter bulan)
+    $pinjaman_query = "SELECT COALESCE(SUM(jumlah_pinjaman), 0) as total FROM pinjaman WHERE status = 'acc'";
     
     $result_pinjaman = mysqli_query($koneksi, $pinjaman_query);
     if ($result_pinjaman) {
@@ -69,13 +59,11 @@ try {
         $data_rekap['pinjaman_acc'] = $pinjaman_data['total'];
     }
 
-    // 4. GET ANGSURAN LUNAS (hanya angsuran yang dilunasi di bulan yang dipilih)
+    // 4. GET ANGSURAN LUNAS (semua data tanpa filter bulan)
     $angsuran_query = "SELECT 
                       COALESCE(SUM(nominal), 0) as angsuran,
                       COALESCE(SUM(bunga), 0) as bunga
-                      FROM angsuran 
-                      WHERE status = 'lunas' 
-                      AND DATE(tgl_pelunasan) BETWEEN '$month_start' AND '$month_end'";
+                      FROM angsuran WHERE status = 'lunas'";
     
     $result_angsuran = mysqli_query($koneksi, $angsuran_query);
     if ($result_angsuran) {
@@ -87,14 +75,13 @@ try {
     // Calculate saldo akhir
     $data_rekap['saldo_akhir'] = ($data_rekap['total_simpanan'] + $data_rekap['angsuran_lunas'] + $data_rekap['bunga_lunas']) - $data_rekap['pinjaman_acc'];
     
-    // 5. GET DETAILED TRANSACTION DATA - SIMPANAN (hanya bulan yang dipilih)
+    // 5. GET DETAILED TRANSACTION DATA - SIMPANAN (semua data tanpa filter bulan)
     $transaksi_simpanan_query = "SELECT 
                                 s.tanggal,
                                 a.nama as nama_anggota,
                                 s.nominal
                                 FROM simpanan s
                                 LEFT JOIN anggota a ON s.anggota_id = a.id
-                                WHERE DATE(s.tanggal) BETWEEN '$month_start' AND '$month_end'
                                 ORDER BY s.tanggal DESC, s.id DESC";
     
     $result_simpanan_detail = mysqli_query($koneksi, $transaksi_simpanan_query);
@@ -104,7 +91,7 @@ try {
         }
     }
 
-    // 6. GET DETAILED TRANSACTION DATA - PINJAMAN (hanya yang di-ACC di bulan yang dipilih)
+    // 6. GET DETAILED TRANSACTION DATA - PINJAMAN (semua data tanpa filter bulan)
     $transaksi_pinjaman_query = "SELECT 
                                 p.tanggal_pengajuan,
                                 p.tanggal_acc,
@@ -114,7 +101,6 @@ try {
                                 FROM pinjaman p
                                 LEFT JOIN anggota a ON p.anggota_id = a.id
                                 WHERE p.status = 'acc'
-                                AND DATE(p.tanggal_acc) BETWEEN '$month_start' AND '$month_end'
                                 ORDER BY p.tanggal_acc DESC, p.id DESC";
     
     $result_pinjaman_detail = mysqli_query($koneksi, $transaksi_pinjaman_query);
@@ -124,7 +110,7 @@ try {
         }
     }
 
-    // 7. GET DETAILED TRANSACTION DATA - ANGSURAN (hanya yang dilunasi di bulan yang dipilih)
+    // 7. GET DETAILED TRANSACTION DATA - ANGSURAN (semua data tanpa filter bulan)
     $transaksi_angsuran_query = "SELECT 
                                 ag.tgl_pelunasan,
                                 a.nama as nama_anggota,
@@ -136,7 +122,6 @@ try {
                                 LEFT JOIN pinjaman p ON ag.pinjaman_id = p.id
                                 LEFT JOIN anggota a ON p.anggota_id = a.id
                                 WHERE ag.status = 'lunas'
-                                AND DATE(ag.tgl_pelunasan) BETWEEN '$month_start' AND '$month_end'
                                 ORDER BY ag.tgl_pelunasan DESC, ag.id DESC";
     
     $result_angsuran_detail = mysqli_query($koneksi, $transaksi_angsuran_query);
@@ -293,8 +278,8 @@ try {
             <div class="col-md-12 grid-margin">
               <div class="row">
                 <div class="col-12 col-xl-12 mb-2 mb-xl-0">
-                  <h1 class="font-weight-bold">Rekap Bulanan Koperasi</h1>
-                  <h6 class="font-weight-normal mb-0">Dashboard Rekapitulasi Keuangan Bulanan - <?= date('F Y', strtotime($month_start)) ?></h6>
+                  <h1 class="font-weight-bold">Rekap Koperasi</h1>
+                  <h6 class="font-weight-normal mb-0">Dashboard Rekapitulasi Keuangan Keseluruhan</h6>
                 </div>
               </div>
             </div>
@@ -369,12 +354,12 @@ try {
             </div>
           </div>
 
-          <!-- Tabel Rekap Bulanan -->
+          <!-- Tabel Rekap -->
           <div class="row">
             <div class="col-md-12 grid-margin stretch-card">
               <div class="card">
                 <div class="card-body">
-                  <h4 class="card-title mb-4">Rekap Bulanan - <?= date('F Y', strtotime($month_start)) ?></h4>
+                  <h4 class="card-title mb-4">Rekap Keseluruhan</h4>
                   <div class="table-responsive">
                     <table class="table table-bordered table-hover">
                       <thead class="thead-dark">
@@ -422,12 +407,12 @@ try {
               <div class="card">
                 <div class="card-body">
                   <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4 class="card-title mb-0">Detail Transaksi Simpanan - <?= date('F Y', strtotime($month_start)) ?></h4>
+                    <h4 class="card-title mb-0">Detail Transaksi Simpanan</h4>
                     <div class="no-print">
                       <button onclick="printTable()" class="btn btn-primary btn-sm">
                         <i class="ti-printer"></i> Print
                       </button>
-                      <button onclick="exportToExcel('tableSimpanan')" class="btn btn-success btn-sm">
+                      <button onclick="exportToExcel()" class="btn btn-success btn-sm">
                         <i class="ti-file"></i> Excel
                       </button>
                     </div>
@@ -467,7 +452,7 @@ try {
                           <tr>
                             <td colspan="4" class="text-center text-muted py-4">
                               <i class="ti-info-alt" style="font-size: 2rem;"></i><br>
-                              Tidak ada data simpanan untuk bulan <?= date('F Y', strtotime($month_start)) ?>
+                              Tidak ada data simpanan
                             </td>
                           </tr>
                         <?php endif; ?>
@@ -485,12 +470,12 @@ try {
               <div class="card">
                 <div class="card-body">
                   <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4 class="card-title mb-0">Detail Pinjaman ACC - <?= date('F Y', strtotime($month_start)) ?></h4>
+                    <h4 class="card-title mb-0">Detail Pinjaman ACC</h4>
                     <div class="no-print">
                       <button onclick="printTable()" class="btn btn-primary btn-sm">
                         <i class="ti-printer"></i> Print
                       </button>
-                      <button onclick="exportToExcel('tablePinjaman')" class="btn btn-success btn-sm">
+                      <button onclick="exportToExcel()" class="btn btn-success btn-sm">
                         <i class="ti-file"></i> Excel
                       </button>
                     </div>
@@ -539,7 +524,7 @@ try {
                           <tr>
                             <td colspan="6" class="text-center text-muted py-4">
                               <i class="ti-info-alt" style="font-size: 2rem;"></i><br>
-                              Tidak ada data pinjaman ACC untuk bulan <?= date('F Y', strtotime($month_start)) ?>
+                              Tidak ada data pinjaman ACC
                             </td>
                           </tr>
                         <?php endif; ?>
@@ -557,12 +542,12 @@ try {
               <div class="card">
                 <div class="card-body">
                   <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4 class="card-title mb-0">Detail Transaksi Angsuran Lunas - <?= date('F Y', strtotime($month_start)) ?></h4>
+                    <h4 class="card-title mb-0">Detail Transaksi Angsuran Lunas</h4>
                     <div class="no-print">
                       <button onclick="printTable()" class="btn btn-primary btn-sm">
                         <i class="ti-printer"></i> Print
                       </button>
-                      <button onclick="exportToExcel('tableAngsuran')" class="btn btn-success btn-sm">
+                      <button onclick="exportToExcel()" class="btn btn-success btn-sm">
                         <i class="ti-file"></i> Excel
                       </button>
                     </div>
@@ -614,7 +599,7 @@ try {
                           <tr>
                             <td colspan="7" class="text-center text-muted py-4">
                               <i class="ti-info-alt" style="font-size: 2rem;"></i><br>
-                              Tidak ada data angsuran lunas untuk bulan <?= date('F Y', strtotime($month_start)) ?>
+                              Tidak ada data angsuran lunas
                             </td>
                           </tr>
                         <?php endif; ?>
@@ -655,11 +640,11 @@ try {
       window.print();
     }
 
-    function exportToExcel(tableId) {
-      // Create a simple table export without DataTables
+    function exportToExcel() {
+      // Create a simple table export
       const tables = document.querySelectorAll('table');
-      let html = '<html><head><meta charset="utf-8"><title>Rekap Bulanan <?= date("F Y", strtotime($month_start)) ?></title></head><body>';
-      html += '<h1>Rekap Bulanan Koperasi - <?= date("F Y", strtotime($month_start)) ?></h1>';
+      let html = '<html><head><meta charset="utf-8"><title>Rekap Koperasi</title></head><body>';
+      html += '<h1>Rekap Koperasi - Keseluruhan</h1>';
       
       tables.forEach(table => {
         html += table.outerHTML;
@@ -671,7 +656,7 @@ try {
       const url = 'data:application/vnd.ms-excel;charset=utf-8,' + encodeURIComponent(html);
       const downloadLink = document.createElement("a");
       downloadLink.href = url;
-      downloadLink.download = "rekap_bulanan_<?= $selected_month ?>.xls";
+      downloadLink.download = "rekap_koperasi_keseluruhan.xls";
       document.body.appendChild(downloadLink);
       downloadLink.click();
       document.body.removeChild(downloadLink);
