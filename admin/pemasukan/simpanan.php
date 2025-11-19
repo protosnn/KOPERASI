@@ -423,75 +423,150 @@
     // helper to strip HTML and normalize whitespace for exports
     function stripHtml(data) {
       if (typeof data !== 'string') return data;
-      // remove small(...) first, then all tags, then decode basic entities and trim
       var withoutSmall = data.replace(/<small[^>]*>.*?<\/small>/ig, '');
       var noTags = withoutSmall.replace(/<[^>]*>/g, '');
-      // replace multiple whitespace/newlines with single space
       var collapsed = noTags.replace(/\s+/g, ' ').trim();
       return collapsed;
     }
 
     // Initialize DataTable
-        var table = $('#tabelSimpanan').DataTable({
-            responsive: true,
-            dom: 'Blfrtip',
-            lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
-            buttons: [
+    var table = $('#tabelSimpanan').DataTable({
+        responsive: true,
+        dom: 'Blfrtip',
+        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
+        buttons: [
             {
-              extend: 'copy',
-              text: '<i class="ti-clipboard"></i> Copy',
-              className: 'btn btn-info btn-sm mb-5',
-              exportOptions: {
-                columns: [0, 1, 2, 3, 4, 5, 6],
-                format: {
-                  body: function(data, row, column, node) {
-                    return stripHtml(data);
-                  }
-                }
-              }
-            },
-                        {
-                            extend: 'excel',
-                            text: '<i class="ti-file"></i> Excel',
-                            className: 'btn btn-success btn-sm mb-5',
-              exportOptions: {
-                columns: [0, 1, 2, 3, 4, 5, 6],
-                format: {
-                  body: function(data, row, column, node) {
-                    return stripHtml(data);
-                  }
-                }
-              }
-                        },
-                        {
-                            extend: 'pdf',
-                            text: '<i class="ti-file"></i> PDF',
-                            className: 'btn btn-danger btn-sm mb-5',
-              exportOptions: {
-                columns: [0, 1, 2, 3, 4, 5, 6],
-                format: {
-                  body: function(data, row, column, node) {
-                    return stripHtml(data);
-                  }
-                }
-              }
-                        },
-                        {
-                            extend: 'print',
-                            text: '<i class="ti-printer"></i> Print',
-                            className: 'btn btn-dark btn-sm mb-5',
-              exportOptions: {
-                columns: [0, 1, 2, 3, 4, 5, 6],
-                format: {
-                  body: function(data, row, column, node) {
-                    return stripHtml(data);
-                  }
-                }
-              }
+                extend: 'copy',
+                text: '<i class="ti-clipboard"></i> Copy',
+                className: 'btn btn-info btn-sm mb-2',
+                exportOptions: {
+                    columns: [0, 1, 2, 3, 4, 5, 6],
+                    format: {
+                        body: function(data, row, column, node) {
+                            return stripHtml(data);
                         }
+                    }
+                }
+            },
+            {
+                extend: 'excel',
+                text: '<i class="ti-file"></i> Excel',
+                className: 'btn btn-success btn-sm mb-2',
+                filename: 'Laporan_Simpanan_' + new Date().toISOString().split('T')[0],
+                title: 'LAPORAN DATA PEMASUKAN',
+                exportOptions: {
+                    columns: [0, 1, 2, 3, 4, 5, 6],
+                    format: {
+                        body: function(data, row, column, node) {
+                            return stripHtml(data);
+                        }
+                    }
+                },
+                customize: function(xlsx) {
+                    var sheet = xlsx.xl.worksheets['sheet1.xml'];
+                    $('row:first c', sheet).each(function() {
+                        $(this).attr('s', '2');
+                    });
                     
-                
-            ],
+                    // Tambah row kosong dan row total
+                    var rows = $('row', sheet);
+                    var lastRow = rows.last();
+                    var rowNum = rows.length + 1;
+                    
+                    // Row kosong
+                    var emptyRow = '<row r="' + rowNum + '"></row>';
+                    lastRow.after(emptyRow);
+                    rowNum++;
+                    
+                    // Row total dengan styling
+                    var totalRow = '<row r="' + rowNum + '">' +
+                        '<c r="A' + rowNum + '" t="str"><v></v></c>' +
+                        '<c r="B' + rowNum + '" t="str" s="2"><v>TOTAL PEMASUKAN</v></c>' +
+                        '<c r="C' + rowNum + '" t="str"></c>' +
+                        '<c r="D' + rowNum + '" t="str"></c>' +
+                        '<c r="E' + rowNum + '" t="str"></c>' +
+                        '<c r="F' + rowNum + '" t="str" s="2"><v>=SUM(F2:F' + (rowNum-2) + ')</v></c>' +
+                        '<c r="G' + rowNum + '" t="str"></c>' +
+                        '</row>';
+                    lastRow.after(totalRow);
+                }
+            },
+            {
+                extend: 'pdf',
+                text: '<i class="ti-file"></i> PDF',
+                className: 'btn btn-danger btn-sm mb-2',
+                filename: 'Laporan_Simpanan_' + new Date().toISOString().split('T')[0],
+                title: 'LAPORAN DATA PEMASUKAN',
+                orientation: 'landscape',
+                pageSize: 'A4',
+                exportOptions: {
+                    columns: [0, 1, 2, 3, 4, 5, 6],
+                    format: {
+                        body: function(data, row, column, node) {
+                            return stripHtml(data);
+                        }
+                    }
+                },
+                customize: function(doc) {
+                    try {
+                        // Style header
+                        if(doc.content[1] && doc.content[1].table) {
+                            doc.content[1].table.headerRows = 1;
+                            
+                            // Warnai header
+                            var headerRow = doc.content[1].table.body[0];
+                            if(headerRow) {
+                                for(var i = 0; i < headerRow.length; i++) {
+                                    headerRow[i].fillColor = '#667eea';
+                                    headerRow[i].textColor = 255;
+                                    headerRow[i].alignment = 'center';
+                                }
+                            }
+                        }
+                        
+                        doc.defaultStyle.fontSize = 10;
+                        doc.styles.tableHeader.fontSize = 11;
+                        
+                        // Tambah judul di awal
+                        doc.content.splice(0, 0, {
+                            text: 'LAPORAN DATA PEMASUKAN',
+                            fontSize: 16,
+                            bold: true,
+                            alignment: 'center',
+                            margin: [0, 0, 0, 15]
+                        });
+                        
+                        // Tambah tanggal di akhir
+                        doc.content.push({
+                            text: 'Tanggal: ' + new Date().toLocaleDateString('id-ID'),
+                            fontSize: 10,
+                            alignment: 'right',
+                            margin: [0, 10, 0, 0]
+                        });
+                    } catch(e) {
+                        console.log('PDF customize error:', e);
+                    }
+                }
+            },
+            {
+                extend: 'print',
+                text: '<i class="ti-printer"></i> Print',
+                className: 'btn btn-dark btn-sm mb-2',
+                title: 'LAPORAN DATA PEMASUKAN',
+                exportOptions: {
+                    columns: [0, 1, 2, 3, 4, 5, 6],
+                    format: {
+                        body: function(data, row, column, node) {
+                            return stripHtml(data);
+                        }
+                    }
+                },
+                customize: function(win) {
+                    $(win.document.body).prepend('<h2 style="text-align: center; margin-bottom: 20px;">LAPORAN DATA PEMASUKAN</h2>');
+                    $(win.document.body).append('<p style="text-align: right; margin-top: 20px; font-size: 12px;">Tanggal: ' + new Date().toLocaleDateString('id-ID') + '</p>');
+                }
+            }
+        ],
             language: {
                 search: "Cari:",
                 lengthMenu: "Tampilkan _MENU_ data per halaman",

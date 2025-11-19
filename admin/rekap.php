@@ -75,7 +75,82 @@ try {
     // Calculate saldo akhir
     $data_rekap['saldo_akhir'] = ($data_rekap['total_simpanan'] + $data_rekap['angsuran_lunas'] + $data_rekap['bunga_lunas']) - $data_rekap['pinjaman_acc'];
     
-    // 5. GET DETAILED TRANSACTION DATA - SIMPANAN (semua data tanpa filter bulan)
+    // 5. HITUNG SHU (Sisa Hasil Usaha)
+    // SHU = Total Pemasukan - Total Pengeluaran
+    // Pemasukan = Simpanan + Angsuran Lunas + Bunga
+    // Pengeluaran = Pinjaman ACC
+    $total_pemasukan = $data_rekap['total_simpanan'] + $data_rekap['angsuran_lunas'] + $data_rekap['bunga_lunas'];
+    $total_pengeluaran = $data_rekap['pinjaman_acc'];
+    $data_rekap['shu_total'] = $total_pemasukan - $total_pengeluaran;
+    
+    // Persentase distribusi SHU ke anggota (standar 60%)
+    $persentase_distribusi_shu = 0.60;
+    $data_rekap['shu_distribusi'] = $data_rekap['shu_total'] * $persentase_distribusi_shu;
+    $data_rekap['shu_operasional'] = $data_rekap['shu_total'] * (1 - $persentase_distribusi_shu);
+    
+    // 6. HITUNG KONTRIBUSI PER ANGGOTA UNTUK SHU
+    // Kontribusi = Simpanan + Angsuran yang dibayar oleh anggota
+    $kontribusi_per_anggota = [];
+    $total_kontribusi = 0;
+    
+    // Query simpanan per anggota
+    $simpanan_per_anggota_query = "SELECT anggota_id, SUM(nominal) as total_simpanan 
+                                   FROM simpanan 
+                                   GROUP BY anggota_id";
+    $result_simpanan_anggota = mysqli_query($koneksi, $simpanan_per_anggota_query);
+    
+    // Inisialisasi kontribusi per anggota
+    $anggota_query_all = "SELECT id, nama FROM anggota ORDER BY nama ASC";
+    $result_anggota_all = mysqli_query($koneksi, $anggota_query_all);
+    
+    while($anggota = mysqli_fetch_assoc($result_anggota_all)) {
+        $kontribusi_per_anggota[$anggota['id']] = [
+            'nama' => $anggota['nama'],
+            'simpanan' => 0,
+            'angsuran_bayar' => 0,
+            'kontribusi_total' => 0
+        ];
+    }
+    
+    // Hitung simpanan per anggota
+    $result_simpanan_anggota = mysqli_query($koneksi, $simpanan_per_anggota_query);
+    while($row = mysqli_fetch_assoc($result_simpanan_anggota)) {
+        if(isset($kontribusi_per_anggota[$row['anggota_id']])) {
+            $kontribusi_per_anggota[$row['anggota_id']]['simpanan'] = $row['total_simpanan'];
+        }
+    }
+    
+    // Query angsuran yang dibayar per anggota
+    $angsuran_per_anggota_query = "SELECT p.anggota_id, SUM(ag.nominal) as total_angsuran 
+                                   FROM angsuran ag
+                                   JOIN pinjaman p ON ag.pinjaman_id = p.id
+                                   WHERE ag.status = 'lunas'
+                                   GROUP BY p.anggota_id";
+    $result_angsuran_anggota = mysqli_query($koneksi, $angsuran_per_anggota_query);
+    
+    while($row = mysqli_fetch_assoc($result_angsuran_anggota)) {
+        if(isset($kontribusi_per_anggota[$row['anggota_id']])) {
+            $kontribusi_per_anggota[$row['anggota_id']]['angsuran_bayar'] = $row['total_angsuran'];
+        }
+    }
+    
+    // Hitung total kontribusi per anggota dan total keseluruhan
+    foreach($kontribusi_per_anggota as $id => &$data) {
+        $data['kontribusi_total'] = $data['simpanan'] + $data['angsuran_bayar'];
+        $total_kontribusi += $data['kontribusi_total'];
+    }
+    
+    // Hitung SHU per anggota
+    foreach($kontribusi_per_anggota as $id => &$data) {
+        if($total_kontribusi > 0) {
+            $persentase_kontribusi = $data['kontribusi_total'] / $total_kontribusi;
+            $data['shu_perolehan'] = $persentase_kontribusi * $data_rekap['shu_distribusi'];
+        } else {
+            $data['shu_perolehan'] = 0;
+        }
+    }
+    
+    // 7. GET DETAILED TRANSACTION DATA - SIMPANAN (semua data tanpa filter bulan)
     $transaksi_simpanan_query = "SELECT 
                                 s.tanggal,
                                 a.nama as nama_anggota,
@@ -147,6 +222,8 @@ try {
   <!-- endinject -->
   <!-- Plugin css for this page -->
   <link rel="stylesheet" href="../template2/vendors/datatables.net-bs4/dataTables.bootstrap4.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap4.min.css">
   <link rel="stylesheet" href="../template2/vendors/ti-icons/css/themify-icons.css">
   <link rel="stylesheet" type="text/css" href="../template2/js/select.dataTables.min.css">
   <style>
@@ -193,6 +270,39 @@ try {
     .card {
       margin-bottom: 30px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    /* SHU Table Styling */
+    #tabelSHU {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    #tabelSHU thead th {
+      background-color: #f8f9fa;
+      font-weight: bold;
+      padding: 15px 12px;
+      border: 1px solid #dee2e6;
+      text-align: left;
+    }
+    #tabelSHU tbody td {
+      padding: 14px 12px;
+      border: 1px solid #dee2e6;
+    }
+    #tabelSHU tbody tr:hover {
+      background-color: #f8f9fa;
+    }
+    #tabelSHU .total-row td {
+      padding: 16px 12px;
+      font-weight: bold;
+    }
+    .shu-search-container {
+      margin-bottom: 15px;
+    }
+    .shu-search-container input {
+      padding: 8px 12px;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      width: 300px;
     }
     @media print {
       .no-print {
@@ -359,9 +469,12 @@ try {
             <div class="col-md-12 grid-margin stretch-card">
               <div class="card">
                 <div class="card-body">
-                  <h4 class="card-title mb-4">Rekap Keseluruhan</h4>
+                  <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="card-title mb-0">Rekap Keseluruhan</h4>
+                    <div id="rekapButtons"></div>
+                  </div>
                   <div class="table-responsive">
-                    <table class="table table-bordered table-hover">
+                    <table id="tabelRekap" class="table table-bordered table-hover">
                       <thead class="thead-dark">
                         <tr>
                           <th>Keterangan</th>
@@ -371,23 +484,35 @@ try {
                       <tbody>
                         <tr>
                           <td>Total Anggota</td>
-                          <td class="text-right"><?= number_format($data_rekap['total_anggota'], 0, ',', '.') ?> orang</td>
+                          <td class="text-right" data-sort="<?= $data_rekap['total_anggota'] ?>"><?= number_format($data_rekap['total_anggota'], 0, ',', '.') ?> orang</td>
                         </tr>
                         <tr>
                           <td>Total Simpanan</td>
-                          <td class="text-right">Rp <?= number_format($data_rekap['total_simpanan'], 0, ',', '.') ?></td>
+                          <td class="text-right" data-sort="<?= $data_rekap['total_simpanan'] ?>">Rp <?= number_format($data_rekap['total_simpanan'], 0, ',', '.') ?></td>
                         </tr>
                         <tr>
                           <td>Pinjaman ACC</td>
-                          <td class="text-right">Rp <?= number_format($data_rekap['pinjaman_acc'], 0, ',', '.') ?></td>
+                          <td class="text-right" data-sort="<?= $data_rekap['pinjaman_acc'] ?>">Rp <?= number_format($data_rekap['pinjaman_acc'], 0, ',', '.') ?></td>
                         </tr>
                         <tr>
                           <td>Angsuran Lunas</td>
-                          <td class="text-right">Rp <?= number_format($data_rekap['angsuran_lunas'], 0, ',', '.') ?></td>
+                          <td class="text-right" data-sort="<?= $data_rekap['angsuran_lunas'] ?>">Rp <?= number_format($data_rekap['angsuran_lunas'], 0, ',', '.') ?></td>
                         </tr>
                         <tr>
                           <td>Bunga Lunas</td>
-                          <td class="text-right">Rp <?= number_format($data_rekap['bunga_lunas'], 0, ',', '.') ?></td>
+                          <td class="text-right" data-sort="<?= $data_rekap['bunga_lunas'] ?>">Rp <?= number_format($data_rekap['bunga_lunas'], 0, ',', '.') ?></td>
+                        </tr>
+                        <tr class="table-info">
+                          <td><strong>SHU (Sisa Hasil Usaha)</strong></td>
+                          <td class="text-right"><strong>Rp <?= number_format($data_rekap['shu_total'], 0, ',', '.') ?></strong></td>
+                        </tr>
+                        <tr class="table-warning">
+                          <td style="padding-left: 30px;"><em>└─ Distribusi ke Anggota (60%)</em></td>
+                          <td class="text-right"><strong>Rp <?= number_format($data_rekap['shu_distribusi'], 0, ',', '.') ?></strong></td>
+                        </tr>
+                        <tr class="table-secondary">
+                          <td style="padding-left: 30px;"><em>└─ Cadangan Operasional (40%)</em></td>
+                          <td class="text-right"><strong>Rp <?= number_format($data_rekap['shu_operasional'], 0, ',', '.') ?></strong></td>
                         </tr>
                         <tr class="table-primary total-row">
                           <td><strong>Saldo Akhir</strong></td>
@@ -612,30 +737,295 @@ try {
           </div>
         </div>
 
-        <!-- Footer -->
-        <footer class="footer no-print">
-          <div class="d-sm-flex justify-content-center justify-content-sm-between">
-            <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">
-              Copyright © 2021. Premium Bootstrap admin template from BootstrapDash.
-            </span>
-            <span class="float-none float-sm-right d-block mt-1 mt-sm-0 text-center">
-              Hand-crafted & made with <i class="ti-heart text-danger ml-1"></i>
-            </span>
+        <!-- Tabel Detail SHU Per Anggota -->
+          <div class="row">
+            <div class="col-md-12 grid-margin stretch-card">
+              <div class="card">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="card-title mb-0">Rincian Perolehan SHU Per Anggota</h4>
+                    <div id="shuButtons"></div>
+                  </div>
+                  <p class="text-muted small mb-3">
+                    <strong>Penjelasan:</strong> SHU dihitung dari (Simpanan + Angsuran Bayar) / Total Kontribusi × Alokasi Distribusi (60%)
+                  </p>
+                  <div class="table-responsive">
+                    <table id="tabelSHU" class="table table-bordered table-hover table-sm">
+                      <thead class="thead-dark">
+                        <tr>
+                          <th style="width: 5%;">No</th>
+                          <th style="width: 20%;">Nama Anggota</th>
+                          <th style="width: 15%;" class="text-right">Simpanan</th>
+                          <th style="width: 15%;" class="text-right">Angsuran Bayar</th>
+                          <th style="width: 15%;" class="text-right">Total Kontribusi</th>
+                          <th style="width: 12%;" class="text-right">% Kontribusi</th>
+                          <th style="width: 18%;" class="text-right">Perolehan SHU</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <?php 
+                        $no = 1;
+                        $total_shu_per_anggota = 0;
+                        foreach($kontribusi_per_anggota as $id => $data): 
+                            $persentase = $total_kontribusi > 0 ? ($data['kontribusi_total'] / $total_kontribusi * 100) : 0;
+                            $total_shu_per_anggota += $data['shu_perolehan'];
+                        ?>
+                        <tr>
+                          <td><?= $no++ ?></td>
+                          <td><?= htmlspecialchars($data['nama']) ?></td>
+                          <td class="text-right">Rp <?= number_format($data['simpanan'], 0, ',', '.') ?></td>
+                          <td class="text-right">Rp <?= number_format($data['angsuran_bayar'], 0, ',', '.') ?></td>
+                          <td class="text-right"><strong>Rp <?= number_format($data['kontribusi_total'], 0, ',', '.') ?></strong></td>
+                          <td class="text-right"><?= number_format($persentase, 2, ',', '.') ?>%</td>
+                          <td class="text-right"><strong style="color: #667eea;">Rp <?= number_format($data['shu_perolehan'], 0, ',', '.') ?></strong></td>
+                        </tr>
+                        <?php endforeach; ?>
+                        <tr class="table-info total-row" style="background-color: #e3f2fd;">
+                          <td colspan="5" class="text-right"><strong>TOTAL PEROLEHAN SHU ANGGOTA:</strong></td>
+                          <td class="text-right"><strong>-</strong></td>
+                          <td class="text-right"><strong style="color: #667eea;">Rp <?= number_format($total_shu_per_anggota, 0, ',', '.') ?></strong></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        </footer>
+
+          <!-- Footer -->
+          <footer class="footer no-print" style="background-color: #f8f9fa; border-top: 1px solid #dee2e6; padding: 20px 0; margin-top: 40px;">
+            <div class="container-fluid">
+              <div class="row">
+                <div class="col-md-6">
+                  <p class="text-muted mb-0">
+                    <strong>Sistem Manajemen Koperasi</strong><br>
+                    © 2025 Koperasi Management System. All rights reserved.
+                  </p>
+                </div>
+                <div class="col-md-6 text-right">
+                  <p class="text-muted mb-0">
+                    Versi 1.0 | <a href="#" class="text-muted">Bantuan</a> | <a href="#" class="text-muted">Kontak</a>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </footer>
+        </div>
       </div>
     </div>
-  </div>
 
   <!-- JavaScript -->
+  <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
   <script src="../template2/vendors/js/vendor.bundle.base.js"></script>
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- DataTables -->
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap4.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+  
   <script src="../template2/js/off-canvas.js"></script>
   <script src="../template2/js/hoverable-collapse.js"></script>
   <script src="../template2/js/template.js"></script>
 
   <script>
+    $(document).ready(function() {
+        // Initialize DataTable untuk Rekap Keseluruhan
+        var table = $('#tabelRekap').DataTable({
+            responsive: true,
+            paging: false,
+            searching: false,
+            info: false,
+            ordering: false,
+            dom: 'Brt',
+            buttons: [
+                {
+                    extend: 'excel',
+                    text: '<i class="ti-file"></i> Excel',
+                    className: 'btn btn-success btn-sm mb-2',
+                    filename: 'Rekap_Koperasi_' + new Date().toISOString().split('T')[0],
+                    title: 'REKAP KESELURUHAN KOPERASI',
+                    exportOptions: {
+                        columns: [0, 1]
+                    }
+                },
+                {
+                    extend: 'pdf',
+                    text: '<i class="ti-file"></i> PDF',
+                    className: 'btn btn-danger btn-sm mb-2',
+                    filename: 'Rekap_Koperasi_' + new Date().toISOString().split('T')[0],
+                    title: 'REKAP KESELURUHAN KOPERASI',
+                    orientation: 'portrait',
+                    pageSize: 'A4',
+                    exportOptions: {
+                        columns: [0, 1]
+                    },
+                    customize: function(doc) {
+                        try {
+                            if(doc.content[1] && doc.content[1].table) {
+                                doc.content[1].table.headerRows = 1;
+                                var headerRow = doc.content[1].table.body[0];
+                                if(headerRow) {
+                                    for(var i = 0; i < headerRow.length; i++) {
+                                        headerRow[i].fillColor = '#667eea';
+                                        headerRow[i].textColor = 255;
+                                        headerRow[i].alignment = 'center';
+                                    }
+                                }
+                                
+                                // Format kolom Total (kolom ke-2) menjadi right-align
+                                for(var i = 1; i < doc.content[1].table.body.length; i++) {
+                                    doc.content[1].table.body[i][1].alignment = 'right';
+                                }
+                            }
+                            
+                            doc.defaultStyle.fontSize = 11;
+                            if(doc.styles && doc.styles.tableHeader) {
+                                doc.styles.tableHeader.fontSize = 12;
+                            }
+                            
+                            doc.content.splice(0, 0, {
+                                text: 'REKAP KESELURUHAN KOPERASI',
+                                fontSize: 16,
+                                bold: true,
+                                alignment: 'center',
+                                margin: [0, 0, 0, 15]
+                            });
+                            
+                            doc.content.push({
+                                text: 'Tanggal: ' + new Date().toLocaleDateString('id-ID'),
+                                fontSize: 11,
+                                alignment: 'right',
+                                margin: [0, 10, 0, 0]
+                            });
+                        } catch(e) {
+                            console.log('PDF customize error:', e);
+                        }
+                    }
+                }
+            ]
+        });
+
+        // Move buttons to custom container
+        table.buttons().container().appendTo('#rekapButtons');
+        
+        // Handle SHU table export buttons manually
+        try {
+            if($('#tabelSHU').length) {
+                // Excel export button
+                var excelBtn = $('<button class="btn btn-success btn-sm mb-2"><i class="ti-file"></i> Excel</button>');
+                excelBtn.click(function() {
+                    var table = document.getElementById('tabelSHU');
+                    var html = '<html><head><meta charset="utf-8"></head><body>';
+                    html += '<h2>RINCIAN PEROLEHAN SHU PER ANGGOTA</h2>';
+                    html += '<p>Perhitungan: SHU = (Simpanan + Angsuran Bayar) / Total Kontribusi × 60%</p>';
+                    html += table.outerHTML;
+                    html += '</body></html>';
+                    
+                    var url = 'data:application/vnd.ms-excel;charset=utf-8,' + encodeURIComponent(html);
+                    var downloadLink = document.createElement("a");
+                    downloadLink.href = url;
+                    downloadLink.download = "SHU_Per_Anggota_" + new Date().toISOString().split('T')[0] + ".xls";
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    document.body.removeChild(downloadLink);
+                });
+                
+                // PDF export button
+                var pdfBtn = $('<button class="btn btn-danger btn-sm mb-2"><i class="ti-file"></i> PDF</button>');
+                pdfBtn.click(function() {
+                    try {
+                        var element = document.getElementById('tabelSHU');
+                        var opt = {
+                            margin: 10,
+                            filename: 'SHU_Per_Anggota_' + new Date().toISOString().split('T')[0] + '.pdf',
+                            image: { type: 'jpeg', quality: 0.98 },
+                            html2canvas: { scale: 2 },
+                            jsPDF: { orientation: 'landscape', unit: 'mm', format: 'a4' }
+                        };
+                        
+                        // Simple table export with pdfmake
+                        var docDefinition = {
+                            content: [
+                                {
+                                    text: 'RINCIAN PEROLEHAN SHU PER ANGGOTA',
+                                    fontSize: 16,
+                                    bold: true,
+                                    alignment: 'center',
+                                    margin: [0, 0, 0, 10]
+                                },
+                                {
+                                    text: 'Perhitungan: SHU = (Simpanan + Angsuran Bayar) / Total Kontribusi × 60%',
+                                    fontSize: 10,
+                                    alignment: 'center',
+                                    italics: true,
+                                    margin: [0, 0, 0, 15]
+                                },
+                                {
+                                    table: {
+                                        headerRows: 1,
+                                        body: generatePdfTableData()
+                                    },
+                                    layout: 'lightHorizontalLines'
+                                },
+                                {
+                                    text: 'Tanggal: ' + new Date().toLocaleDateString('id-ID'),
+                                    fontSize: 10,
+                                    alignment: 'right',
+                                    margin: [0, 15, 0, 0]
+                                }
+                            ],
+                            pageOrientation: 'landscape'
+                        };
+                        
+                        pdfMake.createPDF(docDefinition).download('SHU_Per_Anggota_' + new Date().toISOString().split('T')[0] + '.pdf');
+                    } catch(e) {
+                        console.log('PDF error:', e);
+                        alert('Error generating PDF');
+                    }
+                });
+                
+                $('#shuButtons').append(excelBtn).append(pdfBtn);
+            }
+        } catch(e) {
+            console.log('SHU buttons error:', e);
+        }
+        
+        // Helper function to generate PDF table data
+        function generatePdfTableData() {
+            var rows = [];
+            var table = document.getElementById('tabelSHU');
+            
+            if(!table) return rows;
+            
+            // Add header
+            var headerCells = [];
+            table.querySelectorAll('thead th').forEach(function(th) {
+                headerCells.push({text: th.textContent, bold: true, fillColor: '#667eea', color: '#FFF'});
+            });
+            rows.push(headerCells);
+            
+            // Add body rows
+            table.querySelectorAll('tbody tr').forEach(function(tr) {
+                var cells = [];
+                tr.querySelectorAll('td').forEach(function(td) {
+                    cells.push(td.textContent.trim());
+                });
+                rows.push(cells);
+            });
+            
+            return rows;
+        }
+    });
+
     function printTable() {
       window.print();
     }

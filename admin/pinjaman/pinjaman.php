@@ -124,7 +124,7 @@
                   unset($_SESSION['error']);
                 }
                 
-                $query_total = "SELECT COUNT(*) as total, SUM(jumlah_pinjaman) as total_pinjaman FROM pinjaman WHERE status='aktif'";
+                $query_total = "SELECT COUNT(*) as total, SUM(jumlah_pinjaman) as total_pinjaman FROM pinjaman WHERE status='acc'";
                 $result_total = mysqli_query($koneksi, $query_total);
                 $data_total = mysqli_fetch_assoc($result_total);
                 ?>
@@ -784,35 +784,151 @@
         var today = new Date().toISOString().split('T')[0];
         $('input[name="tanggal_pengajuan"]').val(today);
 
+        // Helper function to strip HTML
+        function stripHtml(data) {
+            if (typeof data !== 'string') return data;
+            var withoutSmall = data.replace(/<small[^>]*>.*?<\/small>/ig, '');
+            var noTags = withoutSmall.replace(/<[^>]*>/g, '');
+            var collapsed = noTags.replace(/\s+/g, ' ').trim();
+            return collapsed;
+        }
+
         // Initialize DataTable
         var table = $('#tabelPinjaman').DataTable({
             responsive: true,
-            dom: 'Bfrtip',
+            dom: 'Blfrtip',
+            lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
             buttons: [
                 {
                     extend: 'copy',
                     text: '<i class="ti-clipboard"></i> Copy',
-                    className: 'btn btn-info btn-sm'
-                },
-                {
-                    extend: 'csv',
-                    text: '<i class="ti-file"></i> CSV',
-                    className: 'btn btn-info btn-sm'
+                    className: 'btn btn-info btn-sm mb-2',
+                    exportOptions: {
+                        columns: [0, 1, 2, 3, 4, 5, 6],
+                        format: {
+                            body: function(data, row, column, node) {
+                                return stripHtml(data);
+                            }
+                        }
+                    }
                 },
                 {
                     extend: 'excel',
                     text: '<i class="ti-file"></i> Excel',
-                    className: 'btn btn-success btn-sm'
+                    className: 'btn btn-success btn-sm mb-2',
+                    filename: 'Laporan_Pinjaman_' + new Date().toISOString().split('T')[0],
+                    title: 'LAPORAN DATA PINJAMAN',
+                    exportOptions: {
+                        columns: [0, 1, 2, 3, 4, 5, 6],
+                        format: {
+                            body: function(data, row, column, node) {
+                                return stripHtml(data);
+                            }
+                        }
+                    },
+                    customize: function(xlsx) {
+                        var sheet = xlsx.xl.worksheets['sheet1.xml'];
+                        $('row:first c', sheet).each(function() {
+                            $(this).attr('s', '2');
+                        });
+                        
+                        // Tambah row kosong dan row total
+                        var rows = $('row', sheet);
+                        var lastRow = rows.last();
+                        var rowNum = rows.length + 1;
+                        
+                        // Row kosong
+                        var emptyRow = '<row r="' + rowNum + '"></row>';
+                        lastRow.after(emptyRow);
+                        rowNum++;
+                        
+                        // Row total dengan styling
+                        var totalRow = '<row r="' + rowNum + '">' +
+                            '<c r="A' + rowNum + '" t="str"><v></v></c>' +
+                            '<c r="B' + rowNum + '" t="str" s="2"><v>TOTAL JUMLAH PINJAMAN</v></c>' +
+                            '<c r="C' + rowNum + '" t="str" s="2"><v>=SUM(C2:C' + (rowNum-2) + ')</v></c>' +
+                            '<c r="D' + rowNum + '" t="str"></c>' +
+                            '<c r="E' + rowNum + '" t="str"></c>' +
+                            '<c r="F' + rowNum + '" t="str"></c>' +
+                            '<c r="G' + rowNum + '" t="str"></c>' +
+                            '</row>';
+                        lastRow.after(totalRow);
+                    }
                 },
                 {
                     extend: 'pdf',
                     text: '<i class="ti-file"></i> PDF',
-                    className: 'btn btn-danger btn-sm'
+                    className: 'btn btn-danger btn-sm mb-2',
+                    filename: 'Laporan_Pinjaman_' + new Date().toISOString().split('T')[0],
+                    title: 'LAPORAN DATA PINJAMAN',
+                    orientation: 'landscape',
+                    pageSize: 'A4',
+                    exportOptions: {
+                        columns: [0, 1, 2, 3, 4, 5, 6],
+                        format: {
+                            body: function(data, row, column, node) {
+                                return stripHtml(data);
+                            }
+                        }
+                    },
+                    customize: function(doc) {
+                        try {
+                            // Style header
+                            if(doc.content[1] && doc.content[1].table) {
+                                doc.content[1].table.headerRows = 1;
+                                
+                                // Warnai header
+                                var headerRow = doc.content[1].table.body[0];
+                                if(headerRow) {
+                                    for(var i = 0; i < headerRow.length; i++) {
+                                        headerRow[i].fillColor = '#667eea';
+                                        headerRow[i].textColor = 255;
+                                        headerRow[i].alignment = 'center';
+                                    }
+                                }
+                            }
+                            
+                            doc.defaultStyle.fontSize = 10;
+                            doc.styles.tableHeader.fontSize = 11;
+                            
+                            // Tambah judul di awal
+                            doc.content.splice(0, 0, {
+                                text: 'LAPORAN DATA PINJAMAN',
+                                fontSize: 16,
+                                bold: true,
+                                alignment: 'center',
+                                margin: [0, 0, 0, 15]
+                            });
+                            
+                            // Tambah tanggal di akhir
+                            doc.content.push({
+                                text: 'Tanggal: ' + new Date().toLocaleDateString('id-ID'),
+                                fontSize: 10,
+                                alignment: 'right',
+                                margin: [0, 10, 0, 0]
+                            });
+                        } catch(e) {
+                            console.log('PDF customize error:', e);
+                        }
+                    }
                 },
                 {
                     extend: 'print',
                     text: '<i class="ti-printer"></i> Print',
-                    className: 'btn btn-primary btn-sm'
+                    className: 'btn btn-dark btn-sm mb-2',
+                    title: 'LAPORAN DATA PINJAMAN',
+                    exportOptions: {
+                        columns: [0, 1, 2, 3, 4, 5, 6],
+                        format: {
+                            body: function(data, row, column, node) {
+                                return stripHtml(data);
+                            }
+                        }
+                    },
+                    customize: function(win) {
+                        $(win.document.body).prepend('<h2 style="text-align: center; margin-bottom: 20px;">LAPORAN DATA PINJAMAN</h2>');
+                        $(win.document.body).append('<p style="text-align: right; margin-top: 20px; font-size: 12px;">Tanggal: ' + new Date().toLocaleDateString('id-ID') + '</p>');
+                    }
                 }
             ],
             language: {
@@ -829,10 +945,10 @@
                     previous: "Sebelumnya"
                 }
             },
-            order: [[5, "desc"]], // Urutkan berdasarkan tanggal pinjam secara descending
+            order: [[4, "desc"]], // Urutkan berdasarkan tanggal pengajuan secara descending
             columnDefs: [
                 {
-                    targets: [2, 4], // kolom jumlah pinjaman dan angsuran
+                    targets: 2, // kolom jumlah pinjaman saja
                     render: function(data, type, row) {
                         return type === 'display' ? 
                             'Rp ' + new Intl.NumberFormat('id-ID').format(parseInt(data.replace(/[^\d]/g, ''))) :
