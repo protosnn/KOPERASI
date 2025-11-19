@@ -18,11 +18,6 @@ if (!$koneksi) {
     die("Koneksi database gagal: " . mysqli_connect_error());
 }
 
-// Get selected month from URL or use current month
-$selected_month = isset($_GET['month']) ? $_GET['month'] : date('Y-m');
-$month_start = $selected_month . '-01';
-$month_end = date('Y-m-t', strtotime($month_start));
-
 // Initialize variables
 $data_rekap = [
     'total_anggota' => 0,
@@ -38,7 +33,7 @@ $data_transaksi_pinjaman = [];
 $data_transaksi_angsuran = [];
 
 try {
-    // 1. GET TOTAL ANGGOTA (tidak difilter bulan karena data master)
+    // 1. GET TOTAL ANGGOTA
     $anggota_query = "SELECT COUNT(*) as total FROM anggota";
     $result_anggota = mysqli_query($koneksi, $anggota_query);
     if ($result_anggota) {
@@ -46,10 +41,8 @@ try {
         $data_rekap['total_anggota'] = $anggota_data['total'];
     }
 
-    // 2. GET TOTAL SIMPANAN (hanya transaksi di bulan yang dipilih)
-    $simpanan_query = "SELECT COALESCE(SUM(nominal), 0) as total 
-                      FROM simpanan 
-                      WHERE DATE(tanggal) BETWEEN '$month_start' AND '$month_end'";
+    // 2. GET TOTAL SIMPANAN (semua data tanpa filter bulan)
+    $simpanan_query = "SELECT COALESCE(SUM(nominal), 0) as total FROM simpanan";
     
     $result_simpanan = mysqli_query($koneksi, $simpanan_query);
     if ($result_simpanan) {
@@ -57,11 +50,8 @@ try {
         $data_rekap['total_simpanan'] = $simpanan_data['total'];
     }
 
-    // 3. GET PINJAMAN ACC (hanya pinjaman yang di-ACC di bulan yang dipilih)
-    $pinjaman_query = "SELECT COALESCE(SUM(jumlah_pinjaman), 0) as total 
-                      FROM pinjaman 
-                      WHERE status = 'acc' 
-                      AND DATE(tanggal_acc) BETWEEN '$month_start' AND '$month_end'";
+    // 3. GET PINJAMAN ACC (semua data tanpa filter bulan)
+    $pinjaman_query = "SELECT COALESCE(SUM(jumlah_pinjaman), 0) as total FROM pinjaman WHERE status = 'acc'";
     
     $result_pinjaman = mysqli_query($koneksi, $pinjaman_query);
     if ($result_pinjaman) {
@@ -69,13 +59,11 @@ try {
         $data_rekap['pinjaman_acc'] = $pinjaman_data['total'];
     }
 
-    // 4. GET ANGSURAN LUNAS (hanya angsuran yang dilunasi di bulan yang dipilih)
+    // 4. GET ANGSURAN LUNAS (semua data tanpa filter bulan)
     $angsuran_query = "SELECT 
                       COALESCE(SUM(nominal), 0) as angsuran,
                       COALESCE(SUM(bunga), 0) as bunga
-                      FROM angsuran 
-                      WHERE status = 'lunas' 
-                      AND DATE(tgl_pelunasan) BETWEEN '$month_start' AND '$month_end'";
+                      FROM angsuran WHERE status = 'lunas'";
     
     $result_angsuran = mysqli_query($koneksi, $angsuran_query);
     if ($result_angsuran) {
@@ -87,14 +75,13 @@ try {
     // Calculate saldo akhir
     $data_rekap['saldo_akhir'] = ($data_rekap['total_simpanan'] + $data_rekap['angsuran_lunas'] + $data_rekap['bunga_lunas']) - $data_rekap['pinjaman_acc'];
     
-    // 5. GET DETAILED TRANSACTION DATA - SIMPANAN (hanya bulan yang dipilih)
+    // 5. GET DETAILED TRANSACTION DATA - SIMPANAN (semua data tanpa filter bulan)
     $transaksi_simpanan_query = "SELECT 
                                 s.tanggal,
                                 a.nama as nama_anggota,
                                 s.nominal
                                 FROM simpanan s
                                 LEFT JOIN anggota a ON s.anggota_id = a.id
-                                WHERE DATE(s.tanggal) BETWEEN '$month_start' AND '$month_end'
                                 ORDER BY s.tanggal DESC, s.id DESC";
     
     $result_simpanan_detail = mysqli_query($koneksi, $transaksi_simpanan_query);
@@ -104,7 +91,7 @@ try {
         }
     }
 
-    // 6. GET DETAILED TRANSACTION DATA - PINJAMAN (hanya yang di-ACC di bulan yang dipilih)
+    // 6. GET DETAILED TRANSACTION DATA - PINJAMAN (semua data tanpa filter bulan)
     $transaksi_pinjaman_query = "SELECT 
                                 p.tanggal_pengajuan,
                                 p.tanggal_acc,
@@ -114,7 +101,6 @@ try {
                                 FROM pinjaman p
                                 LEFT JOIN anggota a ON p.anggota_id = a.id
                                 WHERE p.status = 'acc'
-                                AND DATE(p.tanggal_acc) BETWEEN '$month_start' AND '$month_end'
                                 ORDER BY p.tanggal_acc DESC, p.id DESC";
     
     $result_pinjaman_detail = mysqli_query($koneksi, $transaksi_pinjaman_query);
@@ -124,7 +110,7 @@ try {
         }
     }
 
-    // 7. GET DETAILED TRANSACTION DATA - ANGSURAN (hanya yang dilunasi di bulan yang dipilih)
+    // 7. GET DETAILED TRANSACTION DATA - ANGSURAN (semua data tanpa filter bulan)
     $transaksi_angsuran_query = "SELECT 
                                 ag.tgl_pelunasan,
                                 a.nama as nama_anggota,
@@ -136,7 +122,6 @@ try {
                                 LEFT JOIN pinjaman p ON ag.pinjaman_id = p.id
                                 LEFT JOIN anggota a ON p.anggota_id = a.id
                                 WHERE ag.status = 'lunas'
-                                AND DATE(ag.tgl_pelunasan) BETWEEN '$month_start' AND '$month_end'
                                 ORDER BY ag.tgl_pelunasan DESC, ag.id DESC";
     
     $result_angsuran_detail = mysqli_query($koneksi, $transaksi_angsuran_query);
@@ -149,14 +134,6 @@ try {
 } catch (Exception $e) {
     error_log("Database error: " . $e->getMessage());
 }
-
-// Debug info untuk memastikan filter bekerja
-error_log("Selected Month: " . $selected_month);
-error_log("Month Start: " . $month_start);
-error_log("Month End: " . $month_end);
-error_log("Total Simpanan: " . $data_rekap['total_simpanan']);
-error_log("Total Pinjaman ACC: " . $data_rekap['pinjaman_acc']);
-error_log("Total Angsuran: " . $data_rekap['angsuran_lunas']);
 ?>
 <head>
   <!-- Required meta tags -->
@@ -172,8 +149,6 @@ error_log("Total Angsuran: " . $data_rekap['angsuran_lunas']);
   <link rel="stylesheet" href="../template2/vendors/datatables.net-bs4/dataTables.bootstrap4.css">
   <link rel="stylesheet" href="../template2/vendors/ti-icons/css/themify-icons.css">
   <link rel="stylesheet" type="text/css" href="../template2/js/select.dataTables.min.css">
-  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.2.3/css/buttons.bootstrap4.min.css">
-  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap4.min.css">
   <style>
     .badge {
       padding: 6px 10px;
@@ -219,23 +194,6 @@ error_log("Total Angsuran: " . $data_rekap['angsuran_lunas']);
       margin-bottom: 30px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    .dropdown-toggle::after {
-      display: inline-block;
-      margin-left: 0.255em;
-      vertical-align: 0.255em;
-      content: "";
-      border-top: 0.3em solid;
-      border-right: 0.3em solid transparent;
-      border-bottom: 0;
-      border-left: 0.3em solid transparent;
-    }
-    .active-month {
-      background-color: #007bff;
-      color: white;
-    }
-    .month-dropdown {
-      min-width: 200px;
-    }
     @media print {
       .no-print {
         display: none !important;
@@ -244,14 +202,6 @@ error_log("Total Angsuran: " . $data_rekap['angsuran_lunas']);
         box-shadow: none !important;
         border: 1px solid #ddd !important;
       }
-    }
-    .debug-info {
-      background: #fff3cd;
-      border: 1px solid #ffeaa7;
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 5px;
-      font-size: 12px;
     }
   </style>
   <!-- End plugin css for this page -->
@@ -327,51 +277,13 @@ error_log("Total Angsuran: " . $data_rekap['angsuran_lunas']);
           <div class="row">
             <div class="col-md-12 grid-margin">
               <div class="row">
-                <div class="col-12 col-xl-8 mb-2 mb-xl-0">
-                  <h1 class="font-weight-bold">Rekap Bulanan Koperasi</h1>
-                  <h6 class="font-weight-normal mb-0">Dashboard Rekapitulasi Keuangan Bulanan - <?= date('F Y', strtotime($month_start)) ?></h6>
-                </div>
-                <div class="col-12 col-xl-4">
-                  <div class="justify-content-end d-flex">
-                    <div class="dropdown flex-md-grow-1 flex-xl-grow-0">
-                      <button class="btn btn-sm btn-light bg-white dropdown-toggle month-dropdown no-print" type="button" id="monthDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="ti-calendar mr-2"></i> 
-                        <?= date('F Y', strtotime($month_start)) ?>
-                      </button>
-                      <div class="dropdown-menu dropdown-menu-right month-dropdown" aria-labelledby="monthDropdown">
-                        <?php
-                        // Generate 12 bulan terakhir
-                        for ($i = 0; $i < 12; $i++) {
-                            $month_value = date('Y-m', strtotime("-$i months"));
-                            $month_name = date('F Y', strtotime("-$i months"));
-                            $is_active = ($selected_month == $month_value) ? 'active-month' : '';
-                            echo '<a class="dropdown-item ' . $is_active . '" href="rekap_bulanan.php?month=' . $month_value . '">' . $month_name . '</a>';
-                        }
-                        ?>
-                      </div>
-                    </div>
-                  </div>
+                <div class="col-12 col-xl-12 mb-2 mb-xl-0">
+                  <h1 class="font-weight-bold">Rekap Koperasi</h1>
+                  <h6 class="font-weight-normal mb-0">Dashboard Rekapitulasi Keuangan Keseluruhan</h6>
                 </div>
               </div>
             </div>
           </div>
-
-          <!-- Debug Info (Hanya tampil di development) -->
-          <?php if (false): // Set true untuk debug ?>
-          <div class="row debug-info no-print">
-            <div class="col-12">
-              <strong>Debug Info:</strong><br>
-              Selected Month: <?= $selected_month ?><br>
-              Month Range: <?= $month_start ?> to <?= $month_end ?><br>
-              Total Simpanan: <?= $data_rekap['total_simpanan'] ?><br>
-              Total Pinjaman ACC: <?= $data_rekap['pinjaman_acc'] ?><br>
-              Total Angsuran: <?= $data_rekap['angsuran_lunas'] ?><br>
-              Count Simpanan: <?= count($data_transaksi_simpanan) ?><br>
-              Count Pinjaman: <?= count($data_transaksi_pinjaman) ?><br>
-              Count Angsuran: <?= count($data_transaksi_angsuran) ?>
-            </div>
-          </div>
-          <?php endif; ?>
 
           <!-- Summary Cards -->
           <div class="row">
@@ -442,14 +354,14 @@ error_log("Total Angsuran: " . $data_rekap['angsuran_lunas']);
             </div>
           </div>
 
-          <!-- Tabel Rekap Bulanan -->
+          <!-- Tabel Rekap -->
           <div class="row">
             <div class="col-md-12 grid-margin stretch-card">
               <div class="card">
                 <div class="card-body">
-                  <h4 class="card-title mb-4">Rekap Bulanan - <?= date('F Y', strtotime($month_start)) ?></h4>
+                  <h4 class="card-title mb-4">Rekap Keseluruhan</h4>
                   <div class="table-responsive">
-                    <table id="rekapBulanan" class="table table-bordered table-hover">
+                    <table class="table table-bordered table-hover">
                       <thead class="thead-dark">
                         <tr>
                           <th>Keterangan</th>
@@ -495,19 +407,19 @@ error_log("Total Angsuran: " . $data_rekap['angsuran_lunas']);
               <div class="card">
                 <div class="card-body">
                   <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4 class="card-title mb-0">Detail Transaksi Simpanan - <?= date('F Y', strtotime($month_start)) ?></h4>
+                    <h4 class="card-title mb-0">Detail Transaksi Simpanan</h4>
                     <div class="no-print">
                       <button onclick="printTable()" class="btn btn-primary btn-sm">
                         <i class="ti-printer"></i> Print
                       </button>
-                      <button onclick="exportToExcel('tableSimpanan')" class="btn btn-success btn-sm">
+                      <button onclick="exportToExcel()" class="btn btn-success btn-sm">
                         <i class="ti-file"></i> Excel
                       </button>
                     </div>
                   </div>
                   
                   <div class="table-responsive">
-                    <table id="tableSimpanan" class="table table-bordered table-hover">
+                    <table class="table table-bordered table-hover">
                       <thead class="thead-dark">
                         <tr>
                           <th>No</th>
@@ -540,7 +452,7 @@ error_log("Total Angsuran: " . $data_rekap['angsuran_lunas']);
                           <tr>
                             <td colspan="4" class="text-center text-muted py-4">
                               <i class="ti-info-alt" style="font-size: 2rem;"></i><br>
-                              Tidak ada data simpanan untuk bulan <?= date('F Y', strtotime($month_start)) ?>
+                              Tidak ada data simpanan
                             </td>
                           </tr>
                         <?php endif; ?>
@@ -558,18 +470,18 @@ error_log("Total Angsuran: " . $data_rekap['angsuran_lunas']);
               <div class="card">
                 <div class="card-body">
                   <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4 class="card-title mb-0">Detail Pinjaman ACC - <?= date('F Y', strtotime($month_start)) ?></h4>
+                    <h4 class="card-title mb-0">Detail Pinjaman ACC</h4>
                     <div class="no-print">
                       <button onclick="printTable()" class="btn btn-primary btn-sm">
                         <i class="ti-printer"></i> Print
                       </button>
-                      <button onclick="exportToExcel('tablePinjaman')" class="btn btn-success btn-sm">
+                      <button onclick="exportToExcel()" class="btn btn-success btn-sm">
                         <i class="ti-file"></i> Excel
                       </button>
                     </div>
                   </div>
                   <div class="table-responsive">
-                    <table id="tablePinjaman" class="table table-bordered table-hover">
+                    <table class="table table-bordered table-hover">
                       <thead class="thead-dark">
                         <tr>
                           <th>No</th>
@@ -612,7 +524,7 @@ error_log("Total Angsuran: " . $data_rekap['angsuran_lunas']);
                           <tr>
                             <td colspan="6" class="text-center text-muted py-4">
                               <i class="ti-info-alt" style="font-size: 2rem;"></i><br>
-                              Tidak ada data pinjaman ACC untuk bulan <?= date('F Y', strtotime($month_start)) ?>
+                              Tidak ada data pinjaman ACC
                             </td>
                           </tr>
                         <?php endif; ?>
@@ -630,18 +542,18 @@ error_log("Total Angsuran: " . $data_rekap['angsuran_lunas']);
               <div class="card">
                 <div class="card-body">
                   <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4 class="card-title mb-0">Detail Transaksi Angsuran Lunas - <?= date('F Y', strtotime($month_start)) ?></h4>
+                    <h4 class="card-title mb-0">Detail Transaksi Angsuran Lunas</h4>
                     <div class="no-print">
                       <button onclick="printTable()" class="btn btn-primary btn-sm">
                         <i class="ti-printer"></i> Print
                       </button>
-                      <button onclick="exportToExcel('tableAngsuran')" class="btn btn-success btn-sm">
+                      <button onclick="exportToExcel()" class="btn btn-success btn-sm">
                         <i class="ti-file"></i> Excel
                       </button>
                     </div>
                   </div>
                   <div class="table-responsive">
-                    <table id="tableAngsuran" class="table table-bordered table-hover">
+                    <table class="table table-bordered table-hover">
                       <thead class="thead-dark">
                         <tr>
                           <th>No</th>
@@ -687,7 +599,7 @@ error_log("Total Angsuran: " . $data_rekap['angsuran_lunas']);
                           <tr>
                             <td colspan="7" class="text-center text-muted py-4">
                               <i class="ti-info-alt" style="font-size: 2rem;"></i><br>
-                              Tidak ada data angsuran lunas untuk bulan <?= date('F Y', strtotime($month_start)) ?>
+                              Tidak ada data angsuran lunas
                             </td>
                           </tr>
                         <?php endif; ?>
@@ -716,10 +628,7 @@ error_log("Total Angsuran: " . $data_rekap['angsuran_lunas']);
   </div>
 
   <!-- JavaScript -->
-  <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
   <script src="../template2/vendors/js/vendor.bundle.base.js"></script>
-  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-  <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../template2/js/off-canvas.js"></script>
@@ -727,68 +636,27 @@ error_log("Total Angsuran: " . $data_rekap['angsuran_lunas']);
   <script src="../template2/js/template.js"></script>
 
   <script>
-    $(document).ready(function() {
-      // Initialize DataTables
-      $('#tableSimpanan').DataTable({
-        "paging": true,
-        "searching": true,
-        "ordering": true,
-        "info": true,
-        "responsive": true,
-        "language": {
-          "search": "Cari:",
-          "lengthMenu": "Tampilkan _MENU_ data",
-          "zeroRecords": "Tidak ada data yang ditemukan",
-          "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
-          "infoEmpty": "Menampilkan 0 sampai 0 dari 0 data",
-          "infoFiltered": "(difilter dari _MAX_ total data)",
-          "paginate": {
-            "first": "Pertama",
-            "last": "Terakhir",
-            "next": "Selanjutnya",
-            "previous": "Sebelumnya"
-          }
-        }
-      });
-
-      $('#tablePinjaman').DataTable({
-        "paging": true,
-        "searching": true,
-        "ordering": true,
-        "info": true,
-        "responsive": true
-      });
-
-      $('#tableAngsuran').DataTable({
-        "paging": true,
-        "searching": true,
-        "ordering": true,
-        "info": true,
-        "responsive": true
-      });
-
-      $('#rekapBulanan').DataTable({
-        "paging": false,
-        "searching": false,
-        "ordering": false,
-        "info": false
-      });
-
-      // Fix dropdown functionality
-      $('.dropdown-toggle').dropdown();
-    });
-
     function printTable() {
       window.print();
     }
 
-    function exportToExcel(tableId) {
-      const table = document.getElementById(tableId);
-      const html = table.outerHTML;
+    function exportToExcel() {
+      // Create a simple table export
+      const tables = document.querySelectorAll('table');
+      let html = '<html><head><meta charset="utf-8"><title>Rekap Koperasi</title></head><body>';
+      html += '<h1>Rekap Koperasi - Keseluruhan</h1>';
+      
+      tables.forEach(table => {
+        html += table.outerHTML;
+        html += '<br><br>';
+      });
+      
+      html += '</body></html>';
+      
       const url = 'data:application/vnd.ms-excel;charset=utf-8,' + encodeURIComponent(html);
       const downloadLink = document.createElement("a");
       downloadLink.href = url;
-      downloadLink.download = "rekap_" + tableId + "_<?= $selected_month ?>.xls";
+      downloadLink.download = "rekap_koperasi_keseluruhan.xls";
       document.body.appendChild(downloadLink);
       downloadLink.click();
       document.body.removeChild(downloadLink);
