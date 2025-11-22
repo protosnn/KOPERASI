@@ -40,8 +40,8 @@
     <!-- partial:partials/_navbar.html -->
     <nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
       <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
-        <a class="navbar-brand brand-logo mr-5" href="index.html"><img src="../template2/images/logo.svg" class="mr-2" alt="logo"/></a>
-        <a class="navbar-brand brand-logo-mini" href="index.html"><img src="../template2/images/logo-mini.svg" alt="logo"/></a>
+        <a class="navbar-brand brand-logo mr-5" href="../index.php"><img src="../logo.png" class="mr-2" alt="logo" style="height: 40px; width: auto; object-fit: contain;"/></a>
+        <a class="navbar-brand brand-logo-mini" href="../index.php"><img src="../logo.png" alt="logo" style="height: 30px; width: auto; object-fit: contain;"/></a>
       </div>
       <div class="navbar-menu-wrapper d-flex align-items-center justify-content-end">
         <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize">
@@ -239,28 +239,36 @@
               </div>
             </div>
 
-            <!-- Card 7: Jatuh Tempo Hari Ini -->
+            <!-- Card 7: Total SHU (Bunga) -->
             <div class="col-md-6 col-lg-3 grid-margin stretch-card">
-              <div class="card card-light-warning">
+              <div class="card card-light-green">
                 <div class="card-body">
-                  <p class="card-title text-white mb-4">Jatuh Tempo Hari Ini</p>
+                  <p class="card-title text-white mb-4">Total SHU (Bunga)</p>
                   <p class="fs-30 mb-2 text-white font-weight-bold">
-                    <?php echo $data_jatuh_tempo_hari_ini['total_count']; ?>
+                    Rp <?php 
+                      $query_shu_card = "SELECT COALESCE(SUM(bunga), 0) as total_bunga FROM angsuran WHERE status = 'lunas'";
+                      $result_shu_card = mysqli_query($koneksi, $query_shu_card);
+                      $data_shu_card = mysqli_fetch_assoc($result_shu_card);
+                      echo number_format($data_shu_card['total_bunga'] ?: 0, 0, ',', '.');
+                    ?>
                   </p>
-                  <p class="text-white text-sm">Angsuran</p>
+                  <p class="text-white text-sm">Keuntungan Operasional</p>
                 </div>
               </div>
             </div>
 
-            <!-- Card 8: Angsuran Overdue -->
+            <!-- Card 8: SHU per Anggota (Merata) -->
             <div class="col-md-6 col-lg-3 grid-margin stretch-card">
-              <div class="card card-light-red">
+              <div class="card card-light-orange">
                 <div class="card-body">
-                  <p class="card-title text-white mb-4">Angsuran Overdue</p>
+                  <p class="card-title text-white mb-4">SHU per Anggota</p>
                   <p class="fs-30 mb-2 text-white font-weight-bold">
-                    <?php echo $data_overdue['total_count']; ?>
+                    Rp <?php 
+                      $shu_per_anggota_card = $data_anggota['total_count'] > 0 ? ($data_shu_card['total_bunga'] / $data_anggota['total_count']) : 0;
+                      echo number_format($shu_per_anggota_card, 0, ',', '.');
+                    ?>
                   </p>
-                  <p class="text-white text-sm">Rp <?php echo number_format($data_overdue['total_nominal'] ?: 0, 0, ',', '.'); ?></p>
+                  <p class="text-white text-sm">Dibagi Merata</p>
                 </div>
               </div>
             </div>
@@ -369,53 +377,49 @@
 
           <!-- Ringkasan Aktivitas Row 2 -->
           <div class="row">
-            <!-- Jatuh Tempo Hari Ini -->
+            <!-- SHU (Sisa Hasil Usaha) -->
             <div class="col-md-6 grid-margin stretch-card">
               <div class="card">
                 <div class="card-body">
-                  <h4 class="card-title mb-4"><i class="ti-calendar text-info mr-2"></i>Angsuran Jatuh Tempo Hari Ini</h4>
+                  <h4 class="card-title mb-4"><i class="ti-money text-success mr-2"></i>Sisa Hasil Usaha (SHU)</h4>
                   <div class="table-responsive">
-                    <table class="table table-sm table-striped">
+                    <table class="table table-sm">
                       <thead>
                         <tr>
-                          <th>Anggota</th>
+                          <th>Deskripsi</th>
                           <th>Nominal</th>
-                          <th>Pinjaman</th>
-                          <th>Aksi</th>
                         </tr>
                       </thead>
                       <tbody>
                         <?php
-                          $query_jatuh_tempo = "SELECT a.nama, ang.id, ang.nominal, ang.status, p.id as pinjaman_id
-                                               FROM angsuran ang
-                                               JOIN pinjaman p ON ang.pinjaman_id = p.id
-                                               JOIN anggota a ON p.anggota_id = a.id
-                                               WHERE LOWER(ang.status) != 'lunas' AND DATE(ang.tgl_pelunasan) = CURDATE()
-                                               ORDER BY ang.tgl_pelunasan ASC
-                                               LIMIT 5";
-                          $result_jatuh_tempo = mysqli_query($koneksi, $query_jatuh_tempo);
+                          // Total Bunga Lunas (SHU Total)
+                          $query_shu = "SELECT COALESCE(SUM(bunga), 0) as total_bunga FROM angsuran WHERE status = 'lunas'";
+                          $result_shu = mysqli_query($koneksi, $query_shu);
+                          $data_shu = mysqli_fetch_assoc($result_shu);
                           
-                          if(mysqli_num_rows($result_jatuh_tempo) > 0) {
-                            while($jatuh = mysqli_fetch_assoc($result_jatuh_tempo)) {
-                              echo "<tr>
-                                      <td>" . htmlspecialchars($jatuh['nama']) . "</td>
-                                      <td>Rp " . number_format($jatuh['nominal'], 0, ',', '.') . "</td>
-                                      <td>#" . $jatuh['pinjaman_id'] . "</td>
-                                      <td>
-                                        <a href='pinjaman/pinjaman.php' class='btn btn-sm btn-info' title='Bayar'>
-                                          <i class='ti-money'></i>
-                                        </a>
-                                      </td>
-                                    </tr>";
-                            }
-                          } else {
-                            echo "<tr><td colspan='4' class='text-center text-muted'>Tidak ada angsuran jatuh tempo hari ini</td></tr>";
-                          }
+                          // SHU Per Anggota (dibagi merata)
+                          $shu_total = $data_shu['total_bunga'];
+                          $shu_per_anggota = $data_anggota['total_count'] > 0 ? $shu_total / $data_anggota['total_count'] : 0;
+                          
+                          echo "<tr>
+                                  <td><strong>Total SHU (Bunga)</strong></td>
+                                  <td><strong>Rp " . number_format($shu_total, 0, ',', '.') . "</strong></td>
+                                </tr>";
+                          echo "<tr>
+                                  <td>SHU per Anggota</td>
+                                  <td>Rp " . number_format($shu_per_anggota, 0, ',', '.') . "</td>
+                                </tr>";
                         ?>
                       </tbody>
                     </table>
                   </div>
-                  <a href='pinjaman/pinjaman.php' class='btn btn-link btn-sm'>Lihat semua →</a>
+                  <div class="mt-3 p-3" style="background-color: #f8f9fa; border-radius: 5px;">
+                    <p class="text-muted small mb-0">
+                      <i class="ti-info-alt text-info mr-1"></i>
+                      <strong>Penjelasan:</strong> SHU dibagi merata kepada <strong><?php echo $data_anggota['total_count']; ?> anggota</strong> dari keuntungan bunga angsuran.
+                    </p>
+                  </div>
+                  <a href='rekap.php' class='btn btn-link btn-sm mt-3'>Lihat detail lengkap →</a>
                 </div>
               </div>
             </div>

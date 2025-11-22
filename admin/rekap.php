@@ -75,79 +75,33 @@ try {
     // Calculate saldo akhir
     $data_rekap['saldo_akhir'] = ($data_rekap['total_simpanan'] + $data_rekap['angsuran_lunas'] + $data_rekap['bunga_lunas']) - $data_rekap['pinjaman_acc'];
     
-    // 5. HITUNG SHU (Sisa Hasil Usaha)
-    // SHU = Total Pemasukan - Total Pengeluaran
-    // Pemasukan = Simpanan + Angsuran Lunas + Bunga
-    // Pengeluaran = Pinjaman ACC
-    $total_pemasukan = $data_rekap['total_simpanan'] + $data_rekap['angsuran_lunas'] + $data_rekap['bunga_lunas'];
-    $total_pengeluaran = $data_rekap['pinjaman_acc'];
-    $data_rekap['shu_total'] = $total_pemasukan - $total_pengeluaran;
+    // 5. HITUNG SHU (Sisa Hasil Usaha) - BERBASIS BUNGA ANGSURAN (KEUNTUNGAN MURNI)
+    // SHU = Bunga Angsuran Lunas (keuntungan dari pinjaman)
+    // Dibagi merata kepada semua anggota
+    $data_rekap['shu_total'] = $data_rekap['bunga_lunas'];
     
-    // Persentase distribusi SHU ke anggota (standar 60%)
-    $persentase_distribusi_shu = 0.60;
-    $data_rekap['shu_distribusi'] = $data_rekap['shu_total'] * $persentase_distribusi_shu;
-    $data_rekap['shu_operasional'] = $data_rekap['shu_total'] * (1 - $persentase_distribusi_shu);
+    // Hitung jumlah anggota aktif
+    $jumlah_anggota = $data_rekap['total_anggota'];
     
-    // 6. HITUNG KONTRIBUSI PER ANGGOTA UNTUK SHU
-    // Kontribusi = Simpanan + Angsuran yang dibayar oleh anggota
-    $kontribusi_per_anggota = [];
-    $total_kontribusi = 0;
+    // SHU per anggota = Total Bunga / Jumlah Anggota
+    if($jumlah_anggota > 0) {
+        $data_rekap['shu_per_anggota'] = $data_rekap['shu_total'] / $jumlah_anggota;
+    } else {
+        $data_rekap['shu_per_anggota'] = 0;
+    }
     
-    // Query simpanan per anggota
-    $simpanan_per_anggota_query = "SELECT anggota_id, SUM(nominal) as total_simpanan 
-                                   FROM simpanan 
-                                   GROUP BY anggota_id";
-    $result_simpanan_anggota = mysqli_query($koneksi, $simpanan_per_anggota_query);
+    // 6. SIAPKAN DATA UNTUK TABEL SHU PER ANGGOTA
+    $shu_per_anggota = [];
     
-    // Inisialisasi kontribusi per anggota
+    // Get all anggota untuk ditampilkan di tabel SHU
     $anggota_query_all = "SELECT id, nama FROM anggota ORDER BY nama ASC";
     $result_anggota_all = mysqli_query($koneksi, $anggota_query_all);
     
     while($anggota = mysqli_fetch_assoc($result_anggota_all)) {
-        $kontribusi_per_anggota[$anggota['id']] = [
+        $shu_per_anggota[$anggota['id']] = [
             'nama' => $anggota['nama'],
-            'simpanan' => 0,
-            'angsuran_bayar' => 0,
-            'kontribusi_total' => 0
+            'shu_perolehan' => $data_rekap['shu_per_anggota']  // Sama untuk semua anggota
         ];
-    }
-    
-    // Hitung simpanan per anggota
-    $result_simpanan_anggota = mysqli_query($koneksi, $simpanan_per_anggota_query);
-    while($row = mysqli_fetch_assoc($result_simpanan_anggota)) {
-        if(isset($kontribusi_per_anggota[$row['anggota_id']])) {
-            $kontribusi_per_anggota[$row['anggota_id']]['simpanan'] = $row['total_simpanan'];
-        }
-    }
-    
-    // Query angsuran yang dibayar per anggota
-    $angsuran_per_anggota_query = "SELECT p.anggota_id, SUM(ag.nominal) as total_angsuran 
-                                   FROM angsuran ag
-                                   JOIN pinjaman p ON ag.pinjaman_id = p.id
-                                   WHERE ag.status = 'lunas'
-                                   GROUP BY p.anggota_id";
-    $result_angsuran_anggota = mysqli_query($koneksi, $angsuran_per_anggota_query);
-    
-    while($row = mysqli_fetch_assoc($result_angsuran_anggota)) {
-        if(isset($kontribusi_per_anggota[$row['anggota_id']])) {
-            $kontribusi_per_anggota[$row['anggota_id']]['angsuran_bayar'] = $row['total_angsuran'];
-        }
-    }
-    
-    // Hitung total kontribusi per anggota dan total keseluruhan
-    foreach($kontribusi_per_anggota as $id => &$data) {
-        $data['kontribusi_total'] = $data['simpanan'] + $data['angsuran_bayar'];
-        $total_kontribusi += $data['kontribusi_total'];
-    }
-    
-    // Hitung SHU per anggota
-    foreach($kontribusi_per_anggota as $id => &$data) {
-        if($total_kontribusi > 0) {
-            $persentase_kontribusi = $data['kontribusi_total'] / $total_kontribusi;
-            $data['shu_perolehan'] = $persentase_kontribusi * $data_rekap['shu_distribusi'];
-        } else {
-            $data['shu_perolehan'] = 0;
-        }
     }
     
     // 7. GET DETAILED TRANSACTION DATA - SIMPANAN (semua data tanpa filter bulan)
@@ -503,16 +457,12 @@ try {
                           <td class="text-right" data-sort="<?= $data_rekap['bunga_lunas'] ?>">Rp <?= number_format($data_rekap['bunga_lunas'], 0, ',', '.') ?></td>
                         </tr>
                         <tr class="table-info">
-                          <td><strong>SHU (Sisa Hasil Usaha)</strong></td>
+                          <td><strong>SHU (Keuntungan dari Bunga)</strong></td>
                           <td class="text-right"><strong>Rp <?= number_format($data_rekap['shu_total'], 0, ',', '.') ?></strong></td>
                         </tr>
                         <tr class="table-warning">
-                          <td style="padding-left: 30px;"><em>└─ Distribusi ke Anggota (60%)</em></td>
-                          <td class="text-right"><strong>Rp <?= number_format($data_rekap['shu_distribusi'], 0, ',', '.') ?></strong></td>
-                        </tr>
-                        <tr class="table-secondary">
-                          <td style="padding-left: 30px;"><em>└─ Cadangan Operasional (40%)</em></td>
-                          <td class="text-right"><strong>Rp <?= number_format($data_rekap['shu_operasional'], 0, ',', '.') ?></strong></td>
+                          <td style="padding-left: 30px;"><em>└─ SHU per Anggota (Merata)</em></td>
+                          <td class="text-right"><strong>Rp <?= number_format($data_rekap['shu_per_anggota'], 0, ',', '.') ?></strong></td>
                         </tr>
                         <tr class="table-primary total-row">
                           <td><strong>Saldo Akhir</strong></td>
@@ -747,43 +697,33 @@ try {
                     <div id="shuButtons"></div>
                   </div>
                   <p class="text-muted small mb-3">
-                    <strong>Penjelasan:</strong> SHU dihitung dari (Simpanan + Angsuran Bayar) / Total Kontribusi × Alokasi Distribusi (60%)
+                    <strong>Penjelasan:</strong> SHU dibagi merata kepada semua anggota dari keuntungan bunga angsuran. Rumus: Total Bunga ÷ Jumlah Anggota
                   </p>
                   <div class="table-responsive">
                     <table id="tabelSHU" class="table table-bordered table-hover table-sm">
                       <thead class="thead-dark">
-                        <tr>
-                          <th style="width: 5%;">No</th>
-                          <th style="width: 20%;">Nama Anggota</th>
-                          <th style="width: 15%;" class="text-right">Simpanan</th>
-                          <th style="width: 15%;" class="text-right">Angsuran Bayar</th>
-                          <th style="width: 15%;" class="text-right">Total Kontribusi</th>
-                          <th style="width: 12%;" class="text-right">% Kontribusi</th>
-                          <th style="width: 18%;" class="text-right">Perolehan SHU</th>
+                        <tr style="background-color: #f8f9fa;">
+                          <th style="width: 5%; color: #000;">No</th>
+                          <th style="width: 60%; color: #000;">Nama Anggota</th>
+                          <th style="width: 35%; color: #000;" class="text-right">Perolehan SHU</th>
                         </tr>
                       </thead>
                       <tbody>
                         <?php 
                         $no = 1;
-                        $total_shu_per_anggota = 0;
-                        foreach($kontribusi_per_anggota as $id => $data): 
-                            $persentase = $total_kontribusi > 0 ? ($data['kontribusi_total'] / $total_kontribusi * 100) : 0;
-                            $total_shu_per_anggota += $data['shu_perolehan'];
+                        $total_shu_semua = 0;
+                        foreach($shu_per_anggota as $id => $data): 
+                            $total_shu_semua += $data['shu_perolehan'];
                         ?>
                         <tr>
                           <td><?= $no++ ?></td>
                           <td><?= htmlspecialchars($data['nama']) ?></td>
-                          <td class="text-right">Rp <?= number_format($data['simpanan'], 0, ',', '.') ?></td>
-                          <td class="text-right">Rp <?= number_format($data['angsuran_bayar'], 0, ',', '.') ?></td>
-                          <td class="text-right"><strong>Rp <?= number_format($data['kontribusi_total'], 0, ',', '.') ?></strong></td>
-                          <td class="text-right"><?= number_format($persentase, 2, ',', '.') ?>%</td>
                           <td class="text-right"><strong style="color: #667eea;">Rp <?= number_format($data['shu_perolehan'], 0, ',', '.') ?></strong></td>
                         </tr>
                         <?php endforeach; ?>
                         <tr class="table-info total-row" style="background-color: #e3f2fd;">
-                          <td colspan="5" class="text-right"><strong>TOTAL PEROLEHAN SHU ANGGOTA:</strong></td>
-                          <td class="text-right"><strong>-</strong></td>
-                          <td class="text-right"><strong style="color: #667eea;">Rp <?= number_format($total_shu_per_anggota, 0, ',', '.') ?></strong></td>
+                          <td colspan="2" class="text-right"><strong>TOTAL SHU UNTUK SEMUA ANGGOTA:</strong></td>
+                          <td class="text-right"><strong style="color: #667eea;">Rp <?= number_format($total_shu_semua, 0, ',', '.') ?></strong></td>
                         </tr>
                       </tbody>
                     </table>
@@ -926,7 +866,7 @@ try {
                     var table = document.getElementById('tabelSHU');
                     var html = '<html><head><meta charset="utf-8"></head><body>';
                     html += '<h2>RINCIAN PEROLEHAN SHU PER ANGGOTA</h2>';
-                    html += '<p>Perhitungan: SHU = (Simpanan + Angsuran Bayar) / Total Kontribusi × 60%</p>';
+                    html += '<p>Perhitungan: SHU = Total Bunga Angsuran ÷ Jumlah Anggota</p>';
                     html += table.outerHTML;
                     html += '</body></html>';
                     
@@ -963,7 +903,7 @@ try {
                                     margin: [0, 0, 0, 10]
                                 },
                                 {
-                                    text: 'Perhitungan: SHU = (Simpanan + Angsuran Bayar) / Total Kontribusi × 60%',
+                                    text: 'Perhitungan: SHU = Total Bunga Angsuran ÷ Jumlah Anggota (Dibagi Merata)',
                                     fontSize: 10,
                                     alignment: 'center',
                                     italics: true,
