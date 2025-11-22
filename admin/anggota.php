@@ -14,9 +14,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['tambah'])) {
     $password = mysqli_real_escape_string($koneksi, $_POST['password']);
     $alamat = mysqli_real_escape_string($koneksi, $_POST['alamat']);
     $telpon = mysqli_real_escape_string($koneksi, $_POST['telpon']);
+    $tanggal_bergabung = mysqli_real_escape_string($koneksi, $_POST['tanggal_bergabung']);
 
-    $query = "INSERT INTO anggota (nama, username, password, almat, telpon) 
-              VALUES ('$nama', '$username', '$password', '$alamat', '$telpon')";
+    $query = "INSERT INTO anggota (nama, username, password, almat, telpon, tanggal_bergabung) 
+              VALUES ('$nama', '$username', '$password', '$alamat', '$telpon', '$tanggal_bergabung')";
 
     if (mysqli_query($koneksi, $query)) {
         $pesan_sukses = "Data anggota berhasil ditambahkan!";
@@ -33,13 +34,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_id'])) {
     $password = mysqli_real_escape_string($koneksi, $_POST['edit_password']);
     $alamat = mysqli_real_escape_string($koneksi, $_POST['edit_alamat']);
     $telpon = mysqli_real_escape_string($koneksi, $_POST['edit_telpon']);
+    $tanggal_bergabung = mysqli_real_escape_string($koneksi, $_POST['edit_tanggal_bergabung']);
 
     $query = "UPDATE anggota SET 
               nama = '$nama', 
               username = '$username', 
               password = '$password', 
               almat = '$alamat', 
-              telpon = '$telpon' 
+              telpon = '$telpon',
+              tanggal_bergabung = '$tanggal_bergabung'
               WHERE id = '$id'";
 
     if (mysqli_query($koneksi, $query)) {
@@ -80,7 +83,7 @@ if (isset($_GET['hapus'])) {
 }
 
 // AMBIL DATA ANGGOTA UNTUK DITAMPILKAN
-$query_anggota = mysqli_query($koneksi, "SELECT * FROM anggota");
+$query_anggota = mysqli_query($koneksi, "SELECT * FROM anggota ORDER BY tanggal_bergabung DESC");
 $total_anggota = mysqli_num_rows($query_anggota);
 ?>
 <head>
@@ -103,6 +106,18 @@ $total_anggota = mysqli_num_rows($query_anggota);
   <link rel="stylesheet" href="../template2/css/vertical-layout-light/style.css">
   <!-- endinject -->
   <link rel="shortcut icon" href="../template2/images/favicon.png" />
+  <style>
+    .badge-join {
+      background-color: #4CAF50;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    .table th {
+      background-color: #f8f9fa;
+    }
+  </style>
 </head>
 <body>
   <div class="container-scroller">
@@ -254,6 +269,10 @@ $total_anggota = mysqli_num_rows($query_anggota);
                               <label for="telpon">Telepon</label>
                               <input type="text" class="form-control" name="telpon" required>
                             </div>
+                            <div class="form-group">
+                              <label for="tanggal_bergabung">Tanggal Bergabung</label>
+                              <input type="date" class="form-control" name="tanggal_bergabung" required value="<?php echo date('Y-m-d'); ?>">
+                            </div>
                           </div>
                           <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
@@ -298,6 +317,10 @@ $total_anggota = mysqli_num_rows($query_anggota);
                               <label for="edit_telpon">Telepon</label>
                               <input type="text" class="form-control" id="edit_telpon" name="edit_telpon" required>
                             </div>
+                            <div class="form-group">
+                              <label for="edit_tanggal_bergabung">Tanggal Bergabung</label>
+                              <input type="date" class="form-control" id="edit_tanggal_bergabung" name="edit_tanggal_bergabung" required>
+                            </div>
                           </div>
                           <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
@@ -319,6 +342,8 @@ $total_anggota = mysqli_num_rows($query_anggota);
                           <th>Password</th>
                           <th>Alamat</th>
                           <th>Telepon</th>
+                          <th>Tanggal Bergabung</th>
+                          <th>Lama Bergabung</th>
                           <th>Aksi</th>
                         </tr>  
                       </thead>
@@ -332,6 +357,34 @@ $total_anggota = mysqli_num_rows($query_anggota);
                             $cek_pinjaman = mysqli_query($koneksi, "SELECT COUNT(*) as total_pinjaman FROM pinjaman WHERE anggota_id = '{$result['id']}'");
                             $data_pinjaman = mysqli_fetch_assoc($cek_pinjaman);
                             $punya_pinjaman = $data_pinjaman['total_pinjaman'] > 0;
+                            
+                            // Format tanggal bergabung
+                            $tanggal_bergabung = $result['tanggal_bergabung'];
+                            if ($tanggal_bergabung && $tanggal_bergabung != '0000-00-00') {
+                                $tanggal_format = date('d-m-Y', strtotime($tanggal_bergabung));
+                                
+                                // Hitung lama bergabung
+                                $tanggal_bergabung_obj = new DateTime($tanggal_bergabung);
+                                $sekarang = new DateTime();
+                                $selisih = $sekarang->diff($tanggal_bergabung_obj);
+                                
+                                $lama_bergabung = '';
+                                if ($selisih->y > 0) {
+                                    $lama_bergabung .= $selisih->y . ' tahun ';
+                                }
+                                if ($selisih->m > 0) {
+                                    $lama_bergabung .= $selisih->m . ' bulan ';
+                                }
+                                if ($selisih->d > 0 && $selisih->y == 0) {
+                                    $lama_bergabung .= $selisih->d . ' hari';
+                                }
+                                if (empty($lama_bergabung)) {
+                                    $lama_bergabung = 'Baru bergabung';
+                                }
+                            } else {
+                                $tanggal_format = '-';
+                                $lama_bergabung = '-';
+                            }
                         ?>
                         <tr>
                           <td><?php echo $no++; ?></td>
@@ -341,6 +394,12 @@ $total_anggota = mysqli_num_rows($query_anggota);
                           <td><?php echo htmlspecialchars($result['almat']); ?></td>
                           <td><?php echo htmlspecialchars($result['telpon']); ?></td>
                           <td>
+                            <span class="badge-join"><?php echo $tanggal_format; ?></span>
+                          </td>
+                          <td>
+                            <small class="text-muted"><?php echo $lama_bergabung; ?></small>
+                          </td>
+                          <td>
                             <!-- Tombol Edit -->
                             <button type="button" class="btn btn-warning btn-sm" 
                                     onclick="bukaModalEdit(
@@ -349,7 +408,8 @@ $total_anggota = mysqli_num_rows($query_anggota);
                                       '<?php echo addslashes($result['username']); ?>',
                                       '<?php echo addslashes($result['password']); ?>',
                                       '<?php echo addslashes($result['almat']); ?>',
-                                      '<?php echo addslashes($result['telpon']); ?>'
+                                      '<?php echo addslashes($result['telpon']); ?>',
+                                      '<?php echo $result['tanggal_bergabung']; ?>'
                                     )">
                               <i class="ti-pencil"></i> Edit
                             </button>
@@ -423,7 +483,7 @@ $total_anggota = mysqli_num_rows($query_anggota);
   <!-- endinject -->
 
   <script>
-    function bukaModalEdit(id, nama, username, password, alamat, telpon) {
+    function bukaModalEdit(id, nama, username, password, alamat, telpon, tanggal_bergabung) {
         // Isi data ke form
         $('#edit_id').val(id);
         $('#edit_nama').val(nama);
@@ -431,6 +491,7 @@ $total_anggota = mysqli_num_rows($query_anggota);
         $('#edit_password').val(password);
         $('#edit_alamat').val(alamat);
         $('#edit_telpon').val(telpon);
+        $('#edit_tanggal_bergabung').val(tanggal_bergabung);
         
         // Tampilkan modal
         $('#modalEditAnggota').modal('show');
@@ -488,7 +549,8 @@ $total_anggota = mysqli_num_rows($query_anggota);
                     orderable: false,
                     searchable: false
                 }
-            ]
+            ],
+            order: [[6, 'desc']] // Urutkan berdasarkan tanggal bergabung (terbaru dulu)
         });
 
         // Menambahkan class untuk styling button
