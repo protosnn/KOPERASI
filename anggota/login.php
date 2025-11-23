@@ -325,7 +325,7 @@
               </div>
 
               <!-- Login Form -->
-              <form action="../proses_login.php" method="POST">
+              <form action="proses_login_anggota.php" method="POST">
                 <div class="form-group">
                   <input type="text" name="username" class="form-control" placeholder="Username atau Email" required>
                 </div>
