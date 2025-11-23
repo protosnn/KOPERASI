@@ -146,11 +146,11 @@ proses/error_handler.php
 ═════════════════════════════════════════════════════════════════════════════════
 
 1. Access invalid file:
-   https://koperasi.smksalafiyahpati.sch.id//tidak-ada.php
+   http://localhost/koperasi/tidak-ada.php
    → Should see 404 page ✓
 
 2. Access invalid parameter:
-   https://koperasi.smksalafiyahpati.sch.id//admin/anggota.php?edit=999999
+   http://localhost/koperasi/admin/anggota.php?edit=999999
    → Should show error if ID doesn't exist ✓
 
 3. Test button:

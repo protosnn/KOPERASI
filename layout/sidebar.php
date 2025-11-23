@@ -1,7 +1,7 @@
  <nav class="sidebar sidebar-offcanvas" id="sidebar">
         <ul class="nav">
           <li class="nav-item">
-            <a class="nav-link" href="https://koperasi.smksalafiyahpati.sch.id//admin/dashboard.php">
+            <a class="nav-link" href="http://localhost/koperasi/admin/dashboard.php">
               <i class="icon-grid menu-icon"></i>
               <span class="menu-title">Dashboard</span>
             </a>
@@ -14,7 +14,7 @@
             </a>
             <div class="collapse" id="ui-basic">
               <ul class="nav flex-column sub-menu">
-                <li class="nav-item"> <a class="nav-link" href="https://koperasi.smksalafiyahpati.sch.id//admin/pinjaman/pinjaman.php">Pinjaman</a></li>
+                <li class="nav-item"> <a class="nav-link" href="http://localhost/koperasi/admin/pinjaman/pinjaman.php">Pinjaman</a></li>
               </ul>
             </div>
           </li>
@@ -26,18 +26,18 @@
             </a>
             <div class="collapse" id="charts">
               <ul class="nav flex-column sub-menu">
-                <li class="nav-item"> <a class="nav-link" href="https://koperasi.smksalafiyahpati.sch.id//admin/pemasukan/simpanan.php">Pemasukan</a></li>
+                <li class="nav-item"> <a class="nav-link" href="http://localhost/koperasi/admin/pemasukan/simpanan.php">Pemasukan</a></li>
               </ul>
             </div>
           </li>
           <li class="nav-item">
-            <a class="nav-link"  href="https://koperasi.smksalafiyahpati.sch.id//admin/anggota.php" aria-controls="form-elements">
+            <a class="nav-link"  href="http://localhost/koperasi/admin/anggota.php" aria-controls="form-elements">
               <i class="icon-columns menu-icon"></i>
               <span class="menu-title">Anggota</span>
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="https://koperasi.smksalafiyahpati.sch.id//admin/rekap.php">
+            <a class="nav-link" href="http://localhost/koperasi/admin/rekap.php">
               <i class="icon-paper menu-icon"></i>
               <span class="menu-title">Rekap</span>
             </a>

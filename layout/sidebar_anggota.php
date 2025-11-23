@@ -7,7 +7,7 @@
       </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="anggota/pengajuan_pinjaman.php">
+      <a class="nav-link" href="pengajuan.php">
         <i class="icon-credit-card menu-icon"></i>
         <span class="menu-title">Ajukan Pinjaman</span>
       </a>

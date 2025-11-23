@@ -25,37 +25,10 @@
 <body>
   <div class="container-scroller">
     <!-- partial:partials/_navbar.html -->
-    <nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
-      <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
-        <a class="navbar-brand brand-logo mr-5" href="index.html"><img src="../../template2/images/logo.svg" class="mr-2" alt="logo"/></a>
-        <a class="navbar-brand brand-logo-mini" href="index.html"><img src="../../template2/images/logo-mini.svg" alt="logo"/></a>
-      </div>
-      <div class="navbar-menu-wrapper d-flex align-items-center justify-content-end">
-        <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize">
-          <span class="icon-menu"></span>
-        </button>
-        <ul class="navbar-nav navbar-nav-right">
-          <li class="nav-item nav-profile dropdown">
-            <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown" id="profileDropdown">
-              <img src="../../template2/images/faces/face28.jpg" alt="profile"/>
-            </a>
-            <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="profileDropdown">
-              <a class="dropdown-item">
-                <i class="ti-settings text-primary"></i>
-                Settings
-              </a>
-              <a href="../../logout.php" class="dropdown-item">
-                <i class="ti-power-off text-primary"></i>
-                Logout
-              </a>
-            </div>
-          </li>    
-        </ul>
-        <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button" data-toggle="offcanvas">
-          <span class="icon-menu"></span>
-        </button>
-      </div>
-    </nav>
+    <?php 
+      $root_path = '../../';
+      include '../../layout/header_admin.php'; 
+    ?>
     <!-- partial -->
     <div class="container-fluid page-body-wrapper">
       <!-- partial:partials/_settings-panel.html -->
@@ -587,6 +560,48 @@
                   <!-- End modal pembayaran angsuran -->
 
                   <?php } ?>
+                  
+                  <!-- Modal Tolak Pinjaman -->
+                  <div class="modal fade" id="modalTolakPinjaman" tabindex="-1" role="dialog" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                      <div class="modal-content">
+                        <div class="modal-header bg-danger text-white">
+                          <h5 class="modal-title"><i class="ti-alert mr-2"></i>Tolak Pengajuan Pinjaman</h5>
+                          <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                          </button>
+                        </div>
+                        <form id="formTolakPinjaman" method="POST" action="../../proses/proses_tolak_pinjaman.php">
+                          <div class="modal-body">
+                            <input type="hidden" id="pinjaman_id_tolak" name="pinjaman_id">
+                            
+                            <div class="alert alert-info" role="alert">
+                              <i class="ti-info-alt"></i> Peminjam akan menerima notifikasi tentang penolakan ini.
+                            </div>
+                            
+                            <div class="form-group">
+                              <label><strong>Alasan Penolakan</strong></label>
+                              <textarea class="form-control" id="alasan_penolakan" name="alasan_penolakan" rows="4" placeholder="Jelaskan alasan penolakan pinjaman..." required></textarea>
+                              <small class="form-text text-muted">Pesan ini akan dikirim kepada peminjam sebagai notifikasi.</small>
+                            </div>
+                            
+                            <div class="alert alert-warning" role="alert">
+                              <strong><i class="ti-alert"></i> Perhatian!</strong><br>
+                              Tindakan ini akan membuat status pinjaman menjadi <strong>Ditolak</strong> dan peminjam akan menerima notifikasi.
+                            </div>
+                          </div>
+                          <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-danger">
+                              <i class="ti-check"></i> Tolak Pinjaman
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- End modal tolak pinjaman -->
+                  
                   <!-- End modals -->
                   
                   <script>
@@ -1000,11 +1015,11 @@
 
     // Fungsi untuk konfirmasi tolak pinjaman
     function tolakPinjaman(peminjamanId, nama, jumlah) {
-        const message = '⚠️ PERHATIAN!\n\nApakah Anda yakin ingin MENOLAK pinjaman ini?\n\nPeminjam: ' + nama + '\nJumlah: ' + formatRupiah(jumlah) + '\n\nSemua data angsuran akan ikut terhapus!\n\nTindakan ini TIDAK BISA dibatalkan!';
+        // Set value di input hidden
+        $('#pinjaman_id_tolak').val(peminjamanId);
         
-        if (confirm(message)) {
-            window.location.href = '../../proses/hapus_pinjaman.php?pinjaman_id=' + peminjamanId;
-        }
+        // Tampilkan modal
+        $('#modalTolakPinjaman').modal('show');
     }
   </script>
 </body>
