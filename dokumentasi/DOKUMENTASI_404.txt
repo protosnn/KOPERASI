@@ -84,7 +84,7 @@ Cara aktivasi:
 3. Done! 404 error akan otomatis show halaman custom
 
 Testing:
-- Akses URL yang tidak ada: http://localhost/koperasi/tidak-ada-halaman.php
+- Akses URL yang tidak ada: https://koperasi.smksalafiyahpati.sch.id//tidak-ada-halaman.php
 - Seharusnya tampil halaman 404
 
 ───────────────────────────────────────────────────────────────────────────────
@@ -283,7 +283,7 @@ STEP 3: Configure Apache (If using .htaccess)
    - Atau check httpd.conf
 
 3. Test dengan akses URL invalid:
-   http://localhost/koperasi/test-404
+   https://koperasi.smksalafiyahpati.sch.id//test-404
 
 STEP 4: Test Implementation
 ───────────────────────────
@@ -291,11 +291,11 @@ STEP 4: Test Implementation
 Test scenarios:
 
 ✓ Test 1: Akses file yang tidak ada
-  URL: http://localhost/koperasi/tidak-ada-halaman.php
+  URL: https://koperasi.smksalafiyahpati.sch.id//tidak-ada-halaman.php
   Expected: 404 page muncul
 
 ✓ Test 2: Akses halaman dengan invalid parameter
-  URL: http://localhost/koperasi/admin/anggota.php?edit=999999
+  URL: https://koperasi.smksalafiyahpati.sch.id//admin/anggota.php?edit=999999
   Expected: 404 page (jika edit ID tidak ada di database)
 
 ✓ Test 3: Test dari berbagai devices
